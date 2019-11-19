@@ -9,6 +9,7 @@ namespace PhotoSlideshow.Models
 {
     class Photo
     {
+        public int Id { get; set; }
         public int NumberOfTags { get; set; }
         public List<String> Tags { get; set; }
         public Orientation Orientation { get; set; }
