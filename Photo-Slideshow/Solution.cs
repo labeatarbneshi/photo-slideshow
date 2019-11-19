@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace PhotoSlideshow
 {
-    class Program
+    class Solution
     {
-        static void Main(string[] args)
-        {
-        }
+
     }
 }

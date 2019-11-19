@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PhotoSlideshow
+namespace PhotoSlideshow.Enums
 {
-    class Program
+    enum Orientation
     {
-        static void Main(string[] args)
-        {
-        }
+        HORIZONTAL = 1, 
+        VERTICAL = 2
     }
 }

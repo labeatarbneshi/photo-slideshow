@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PhotoSlideshow
+namespace PhotoSlideshow.Models
 {
-    class Program
+    class Slideshow
     {
-        static void Main(string[] args)
-        {
-        }
+        public List<Photo> Photos { get; set; }
     }
 }
