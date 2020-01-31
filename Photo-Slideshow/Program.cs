@@ -1,4 +1,5 @@
-﻿using PhotoSlideshow.Models;
+﻿using Photo_Slideshow;
+using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,7 +21,7 @@ namespace PhotoSlideshow
         static void ReadFile()
         {
             Collection collection = new Collection();
-            var fileStream = new FileStream(@"C:\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\dev\photo-slideshow\Photo-Slideshow\Instances\a_example.txt", FileMode.Open, FileAccess.Read);
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
             {
                 string line;

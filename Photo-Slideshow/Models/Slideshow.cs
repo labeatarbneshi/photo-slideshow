@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Photo_Slideshow.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace PhotoSlideshow.Models
 {
     class Slideshow
     {
-        public List<Photo> Photos { get; set; }
+        public List<Slide> Slides { get; set; }
+        public int Score { get; set; }
     }
 }

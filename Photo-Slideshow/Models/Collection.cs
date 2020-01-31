@@ -10,10 +10,5 @@ namespace PhotoSlideshow.Models
     {
         public int Size { get; set; }
         public List<Photo> Photos { get; set; }
-
-        public void Initialize()
-        {
-
-        }
     }
 }
