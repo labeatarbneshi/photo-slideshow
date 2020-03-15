@@ -14,6 +14,7 @@ namespace PhotoSlideshow
         static void Main(string[] args)
         {
             ReadFile();
+            
 
             Console.ReadKey();
         }
@@ -21,7 +22,7 @@ namespace PhotoSlideshow
         static void ReadFile()
         {
             Collection collection = new Collection();
-            var fileStream = new FileStream(@"C:\dev\photo-slideshow\Photo-Slideshow\Instances\a_example.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
             {
                 string line;
@@ -40,6 +41,9 @@ namespace PhotoSlideshow
                     lineNumber++;
                 }
             }
+
+            Solution solution = new Solution(collection);
+            solution.Generate();
         }
 
         static Photo ProcessLine(string line, int lineNo)
