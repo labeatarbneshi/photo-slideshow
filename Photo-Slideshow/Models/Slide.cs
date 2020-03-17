@@ -11,7 +11,7 @@ namespace Photo_Slideshow.Models
     {
         public List<Photo> Photos { get; set; }
 
-        public List<string> GetSlideTags()
+        public List<string> GetTags()
         {
             if(Photos.Count == 2)
             {

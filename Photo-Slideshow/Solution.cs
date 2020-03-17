@@ -27,87 +27,61 @@ namespace Photo_Slideshow
             //FILTERING PHOTOS BY ORIENTATION
             FilterVerticalPhotos();
             FilterHorizontalPhotos();
-            
-            if(VerticalPhotos.Count % 2 != 0)
+
+            if (VerticalPhotos.Count % 2 != 0)
             {
                 //REMOVE ONE PHOTO FROM VERTICAL PHOTOS LIST
                 RemovePhotoFromVerticalPhotosList(VerticalPhotoRemovalPolicy.RandomIndex);
             }
 
+            List<Slide> horizontalPhotoSlides = GenerateSlidesFromPhotos(HorizontalPhotos);
             List<Slide> verticalPhotoSlides = GenerateSlidesWithVerticalPhotos();
-            List<Slide> horizontalPhotoSlides = new List<Slide>();
-            foreach(var photo in HorizontalPhotos)
+
+            List<Slide> completeSlides = horizontalPhotoSlides.Concat(verticalPhotoSlides).ToList();
+
+            List<Slide> slides = new List<Slide>();
+            while (completeSlides.Count > 0)
             {
-                horizontalPhotoSlides.Add(new Slide()
+                var currentSlide = completeSlides[random.Next(0, completeSlides.Count)];
+                var nextSlide = FindCandidateAdjacentSlide(completeSlides, currentSlide, 20, 3);
+
+                completeSlides.Remove(currentSlide);
+
+                if (nextSlide != null)
                 {
-                    Photos = new List<Photo>()
-                    {
-                        photo
-                    }
-                });
+                    slides.Add(currentSlide);
+                    slides.Add(nextSlide);
+                }
             }
 
-            var a = CalculateScore(verticalPhotoSlides.Concat(horizontalPhotoSlides).ToList());
+
+            var a = CalculateScore(slides);
         }
 
         public List<Slide> GenerateSlidesWithVerticalPhotos()
         {
             List<Slide> slidesWithVerticalPhotos = new List<Slide>();
             List<Photo> verticalPhotos = new List<Photo>(VerticalPhotos);
-            
-            int minimumNumberOfTags = VerticalPhotos.Min(photo => photo.NumberOfTags);
-            int maximumNumberOfTags = VerticalPhotos.Max(photo => photo.NumberOfTags);
 
-            int minimumNumberOfTagsPerSlideThreshold = minimumNumberOfTags;
-            int maximumNUmberOfTagsPerSlideThreshold = maximumNumberOfTags;
+            List<Photo> orderedByNoOfTags = verticalPhotos.OrderBy(photos => photos.NumberOfTags).ToList();
 
-            if (minimumNumberOfTags != maximumNumberOfTags) {
-                minimumNumberOfTagsPerSlideThreshold = maximumNumberOfTags - minimumNumberOfTags;
-                maximumNUmberOfTagsPerSlideThreshold = maximumNumberOfTags + minimumNumberOfTags;
-            }
-
-
-            for(int i = 0; i<verticalPhotos.Count;i++)
+            while (orderedByNoOfTags.Count > 0)
             {
-
-            }
-
-            while(verticalPhotos.Count > 0)
-            {
-                //SELECT INITAL PHOTO FOR SLIDE
-                int index = random.Next(0, verticalPhotos.Count);
-                var selectedPhoto = verticalPhotos[index];
-                verticalPhotos.RemoveAt(index);
-
-                //SELECT PHOTO TO ADD TO SLIDE BEING CREATED
-                bool shouldContinueSearching = true;
-
-                while(shouldContinueSearching)
+                slidesWithVerticalPhotos.Add(new Slide()
                 {
-                    int randomIndex = random.Next(0, verticalPhotos.Count);
-                    var secondSlidePhoto = verticalPhotos[randomIndex];
-                    if (selectedPhoto.NumberOfTags + secondSlidePhoto.NumberOfTags < maximumNUmberOfTagsPerSlideThreshold
-                        || selectedPhoto.NumberOfTags + secondSlidePhoto.NumberOfTags > minimumNumberOfTagsPerSlideThreshold)
+                    Photos = new List<Photo>()
                     {
-                        shouldContinueSearching = false;
-                        verticalPhotos.RemoveAt(randomIndex);
-                        slidesWithVerticalPhotos.Add(new Slide()
-                        {
-                            Photos = new List<Photo>()
-                            {
-                                selectedPhoto,
-                                secondSlidePhoto
-                            }
-                        });
+                        orderedByNoOfTags[0],
+                        orderedByNoOfTags[orderedByNoOfTags.Count - 1]
                     }
-                }
-                
+                });
 
+                orderedByNoOfTags.RemoveAt(0);
+                orderedByNoOfTags.RemoveAt(orderedByNoOfTags.Count -1);
             }
 
             return slidesWithVerticalPhotos;
         }
-
 
         private void FilterVerticalPhotos()
         {
@@ -152,7 +126,7 @@ namespace Photo_Slideshow
 
             for(int i = 0; i < slides.Count - 1; i++)
             {
-                score += CalculateAdjacentSlidesScore(slides[i].GetSlideTags(), slides[i + 1].GetSlideTags());
+                score += CalculateAdjacentSlidesScore(slides[i].GetTags(), slides[i + 1].GetTags());
             }
 
 
@@ -172,6 +146,64 @@ namespace Photo_Slideshow
             };
 
             return scores.Min();
+        }
+
+        private Slide FindCandidateAdjacentSlide(List<Slide> slides, Slide currentSlide, double percentageOfCandidatePhotos, int noOfIterations)
+        {
+            int photosToConsider = (int)Math.Floor(percentageOfCandidatePhotos * VerticalPhotos.Count / 100);
+
+            List<Tuple<Slide, int>> scores = new List<Tuple<Slide, int>>();
+
+            for (int i = 0; i < noOfIterations; i++)
+            {
+                int startingIndex = random.Next(0, slides.Count - photosToConsider < 0 ? slides.Count : slides.Count - photosToConsider);
+                List<Slide> candidateSlides = new List<Slide>();
+
+                if(slides.Count - startingIndex < photosToConsider)
+                {
+                    photosToConsider = slides.Count - startingIndex;
+                }
+
+                candidateSlides.AddRange(slides.GetRange(startingIndex, photosToConsider));
+
+                foreach (var candidateSlide in candidateSlides)
+                {
+                    int score = CalculateAdjacentSlidesScore(currentSlide.GetTags(), candidateSlide.GetTags());
+                    if (score > 0)
+                    {
+                        scores.Add(new Tuple<Slide, int>(candidateSlide, score));
+                    }
+                }
+
+                if(scores.Count != 0) 
+                {
+                    break;
+                }
+            }
+
+            if(scores.Count == 0)
+            {
+                return null;
+            }
+
+            Slide chosenSlide = scores.OrderByDescending(x => x.Item2).First().Item1;
+            slides.Remove(chosenSlide);
+            
+            return chosenSlide;
+        }
+    
+        private List<Slide> GenerateSlidesFromPhotos(List<Photo> photos)
+        {
+            List<Slide> slides = new List<Slide>();
+            foreach(var photo in photos)
+            {
+                slides.Add(new Slide()
+                {
+                    Photos = new List<Photo>() { photo }
+                });
+            }
+
+            return slides;
         }
     }
 }
