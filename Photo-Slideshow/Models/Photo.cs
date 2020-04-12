@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PhotoSlideshow.Models
 {
-    class Photo
+    public class Photo
     {
         public int Id { get; set; }
         public int NumberOfTags { get; set; }

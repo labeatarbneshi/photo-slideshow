@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Photo_Slideshow.Models
 {
-    class Slide
+    public class Slide
     {
+        public int Id { get; set; }
         public List<Photo> Photos { get; set; }
 
         public List<string> GetTags()

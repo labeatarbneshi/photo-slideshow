@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PhotoSlideshow.Enums
 {
-    enum Orientation
+    public enum Orientation
     {
         HORIZONTAL = 1, 
         VERTICAL = 2
