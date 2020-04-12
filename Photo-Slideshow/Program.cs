@@ -1,4 +1,5 @@
-﻿using PhotoSlideshow.Models;
+﻿using Photo_Slideshow;
+using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +14,7 @@ namespace PhotoSlideshow
         static void Main(string[] args)
         {
             ReadFile();
+            
 
             Console.ReadKey();
         }
@@ -39,6 +41,9 @@ namespace PhotoSlideshow
                     lineNumber++;
                 }
             }
+
+            Solution solution = new Solution(collection);
+            solution.Generate();
         }
 
         static Photo ProcessLine(string line, int lineNo)

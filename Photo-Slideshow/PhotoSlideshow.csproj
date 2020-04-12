@@ -42,18 +42,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\VerticalPhotoRemovalPolicy.cs" />
     <Compile Include="Enums\Orientation.cs" />
+    <Compile Include="Models\CandidateSlide.cs" />
     <Compile Include="Models\Collection.cs" />
     <Compile Include="Models\Photo.cs" />
+    <Compile Include="Models\Slide.cs" />
     <Compile Include="Models\Slideshow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Solution.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Instances\" />
+    <Content Include="Instances\a_example.txt" />
+    <Content Include="Instances\b_lovely_landscapes.txt" />
+    <Content Include="Instances\c_memorable_moments.txt" />
+    <Content Include="Instances\d_pet_pictures.txt" />
+    <Content Include="Instances\e_shiny_selfies.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
