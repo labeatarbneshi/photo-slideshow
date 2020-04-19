@@ -13,7 +13,7 @@ namespace Photo_Slideshow
     class Solution
     {
         private readonly Collection Collection;
-        
+
         private List<Photo> VerticalPhotos;
         private List<Photo> HorizontalPhotos;
         private List<Slide> VerticalSlides = new List<Slide>();
@@ -21,6 +21,9 @@ namespace Photo_Slideshow
         private int SlidingWindow = -1;
         private int NoOfIterations = 5;
         private readonly List<int> SlidingWindowsScores = new List<int>();
+        private List<Slide> StartingSlidesList;
+        List<Slide> Slides = new List<Slide>();
+
 
         private readonly Random random = new Random();
         public Solution(Collection collection)
@@ -28,32 +31,33 @@ namespace Photo_Slideshow
             Collection = collection;
             PrepareCollection();
             GenerateInitialSlides();
+            StartingSlidesList = HorizontalSlides.Concat(VerticalSlides).ToList();
         }
 
         public void Generate()
         {
+
             List<Slide> initialSlides = HorizontalSlides.Concat(VerticalSlides).ToList();
             //CalculateSlidingWindow(completeSlides, 2);
 
-            List<Slide> slides = new List<Slide>();
             while (initialSlides.Count > 0)
             {
                 //Find a random slide that will be the first slide in slideshow
                 var startingSlide = initialSlides[random.Next(0, initialSlides.Count)];
                 initialSlides.Remove(startingSlide);
-                slides.Add(startingSlide);
+                Slides.Add(startingSlide);
 
                 //Continue by adding next slides
-                var nextSlide = FindNextSlide(slides, initialSlides, startingSlide, 1);
+                var nextSlide = FindNextSlide(Slides, StartingSlidesList, startingSlide, 1, initialSlides);
 
                 if (nextSlide != null)
                 {
-                    slides.Add(startingSlide);
-                    slides.Add(nextSlide);
+                    Slides.Add(nextSlide);
+                    initialSlides.Remove(nextSlide);
                 }
             }
 
-            int score = Evaluate(slides);
+            int score = Evaluate(Slides);
             Console.WriteLine($"Initial solution score: {score}");
         }
 
@@ -120,9 +124,9 @@ namespace Photo_Slideshow
         /// </summary>
         /// <param name="initalSlideList">List of initially created slides</param>
         /// <param name="percentageFromTotal">User specified percentage which determines number of slides to search in</param>
-        private void CalculateSlidingWindow(List<Slide> initalSlideList, double percentageFromTotal) 
+        private void CalculateSlidingWindow(List<Slide> initalSlideList, double percentageFromTotal)
         {
-            SlidingWindow = 
+            SlidingWindow =
                 (int)Math.Floor(percentageFromTotal * initalSlideList.Count / 100) == 0 ? 1 : (int)Math.Floor(percentageFromTotal * initalSlideList.Count / 100);
         }
 
@@ -134,17 +138,17 @@ namespace Photo_Slideshow
         private int Evaluate(List<Slide> slides)
         {
             int score = 0;
-            
-            if(slides.Count == 1)
+
+            if (slides.Count == 1)
             {
                 return 1;
             }
 
-            for(int i = 0; i < slides.Count - 1; i++)
+            for (int i = 0; i < slides.Count - 1; i++)
             {
                 score += EvaluateAdjacentSlides(slides[i].GetTags(), slides[i + 1].GetTags());
-                
-                if(i == SlidingWindow - 1)
+
+                if (i == SlidingWindow - 1)
                 {
                     SlidingWindowsScores.Add(score);
                     SlidingWindow += SlidingWindow;
@@ -176,9 +180,9 @@ namespace Photo_Slideshow
             return scores.Min();
         }
 
-        private Slide FindNextSlide(List<Slide> finalSlides, List<Slide> initialSlides, Slide startingSlide, double percentageOfCandidatePhotos)
+        private Slide FindNextSlide(List<Slide> finalSlides, List<Slide> initialSlides, Slide startingSlide, double percentageOfCandidatePhotos, List<Slide> iSlides)
         {
-            int slidingWindow = CalculatePhotosToConsider(initialSlides, percentageOfCandidatePhotos);
+            int slidingWindow = CalculatePhotosToConsider(percentageOfCandidatePhotos);
             int maxTagNo = startingSlide.GetTags().Count / 2;
 
             List<CandidateSlide> candidateSlides = new List<CandidateSlide>();
@@ -213,11 +217,11 @@ namespace Photo_Slideshow
                     int score = EvaluateAdjacentSlides(startingSlide.GetTags(), slide.GetTags());
                     if (score > 0)
                     {
-                        candidateSlides.Add(new CandidateSlide() 
+                        candidateSlides.Add(new CandidateSlide()
                         {
                             Id = slide.Id,
                             Slide = slide,
-                            IsUsed = false,
+                            IsUsed = finalSlides.Contains(slide),
                             Score = score
                         });
                     }
@@ -234,35 +238,41 @@ namespace Photo_Slideshow
                 return null;
             }
 
-            Slide chosenSlide = candidateSlides.OrderByDescending(slide => slide.Score).First().Slide;
-            initialSlides.Remove(chosenSlide);
+            CandidateSlide chosenSlide = candidateSlides.OrderByDescending(slide => slide.Score).First();
 
-            return chosenSlide;
+            if (chosenSlide.IsUsed)
+            {
+                palidhje(chosenSlide.Slide, startingSlide, chosenSlide.Score, iSlides);
+                return null;
+            }
+
+            //initialSlides.Remove(chosenSlide.Slide);
+
+            return chosenSlide.Slide;
         }
 
         /// <summary>
         /// Calculates search space for a specific slide
         /// </summary>
-        /// <param name="initialSlides"></param>
         /// <param name="percentageOfCandidatePhotos"></param>
         /// <returns></returns>
-        private int CalculatePhotosToConsider(List<Slide> initialSlides, double percentageOfCandidatePhotos)
+        private int CalculatePhotosToConsider(double percentageOfCandidatePhotos)
         {
-            if(initialSlides.Count <= 100)
+            if (StartingSlidesList.Count <= 100)
             {
-                return initialSlides.Count;
+                return StartingSlidesList.Count;
             }
 
-            int photosToConsider = (int)Math.Floor(percentageOfCandidatePhotos * initialSlides.Count / 100);
-            
-            if(photosToConsider == 0)
+            int photosToConsider = (int)Math.Floor(percentageOfCandidatePhotos * StartingSlidesList.Count / 100);
+
+            if (photosToConsider == 0)
             {
                 return 1;
             }
 
-            return (int)Math.Floor(percentageOfCandidatePhotos * initialSlides.Count / 100);
+            return (int)Math.Floor(percentageOfCandidatePhotos * StartingSlidesList.Count / 100);
         }
-    
+
         /// <summary>
         /// Generate inital slides from photos
         /// </summary>
@@ -319,7 +329,7 @@ namespace Photo_Slideshow
         /// <param name="initialSlides">List of solution slides</param>
         /// <param name="slidingWindow">Indicates the number of slides that search space should include</param>
         /// <returns></returns>
-        public List<Slide> CalculateReducedSearchSpace(List<Slide> searchSpace, List<Slide> initialSlides, int slidingWindow)
+        public List<Slide> CalculateReducedSearchSpace(List<Slide> searchSpace, List<Slide> StartingSlidesList, int slidingWindow)
         {
             int startingIndex;
 
@@ -328,22 +338,103 @@ namespace Photo_Slideshow
                 startingIndex = random.Next(0, searchSpace.Count - slidingWindow < 0 ? searchSpace.Count : searchSpace.Count - slidingWindow);
                 if (searchSpace.Count - startingIndex < slidingWindow)
                 {
-                    slidingWindow = initialSlides.Count - startingIndex;
+                    slidingWindow = StartingSlidesList.Count - startingIndex;
                 }
             }
             else
             {
-                startingIndex = random.Next(0, initialSlides.Count - slidingWindow < 0 ? initialSlides.Count : initialSlides.Count - slidingWindow);
-                if (initialSlides.Count - startingIndex < slidingWindow)
+                startingIndex = random.Next(0, StartingSlidesList.Count - slidingWindow < 0 ? StartingSlidesList.Count : StartingSlidesList.Count - slidingWindow);
+                if (StartingSlidesList.Count - startingIndex < slidingWindow)
                 {
-                    slidingWindow = initialSlides.Count - startingIndex;
+                    slidingWindow = StartingSlidesList.Count - startingIndex;
                 }
             }
 
             List<Slide> candidateSlides = new List<Slide>();
-            candidateSlides.AddRange(initialSlides.GetRange(startingIndex, slidingWindow));
-            
+            candidateSlides.AddRange(StartingSlidesList.GetRange(startingIndex, slidingWindow));
+
             return candidateSlides;
+        }
+
+        public void palidhje(Slide slide, Slide currentSlide, int score, List<Slide> initialSlides)
+        {
+            int indexOfSlide = Slides.IndexOf(slide);
+            Slide predecesorSlide = null;
+            Slide successorSlide = null;
+            int scoreWithPredecesor = -1;
+            int scoreWithSuccesor = -1;
+            if (indexOfSlide > 0)
+            {
+                predecesorSlide = Slides[indexOfSlide - 1];
+            }
+
+            if (indexOfSlide != Slides.Count - 1)
+            {
+                successorSlide = Slides[indexOfSlide + 1];
+            }
+
+            if (predecesorSlide != null)
+            {
+                scoreWithPredecesor = EvaluateAdjacentSlides(predecesorSlide.GetTags(), slide.GetTags());
+            }
+
+            if (successorSlide != null)
+            {
+                scoreWithSuccesor = EvaluateAdjacentSlides(successorSlide.GetTags(), slide.GetTags());
+            }
+
+            if (scoreWithPredecesor == -1)
+            {
+                // Add before
+                Slides.Insert(0, currentSlide);
+            }
+
+            if (scoreWithSuccesor == -1)
+            {
+                Slides.Insert(indexOfSlide + 1, currentSlide);
+            }
+
+            if (scoreWithPredecesor != -1 && scoreWithSuccesor != -1 && scoreWithPredecesor < scoreWithSuccesor)
+            {
+                // Check predecesor with candiate
+                if (score > scoreWithPredecesor)
+                {
+                    //Score of candiate with predecesor
+                    int anotherScore = EvaluateAdjacentSlides(currentSlide.GetTags(), predecesorSlide.GetTags());
+                    if (anotherScore > 0)
+                    {
+                        Slides.Insert(indexOfSlide, currentSlide);
+                    }
+                    else
+                    {
+                        Slides.Remove(predecesorSlide);
+                        Slides.Insert(indexOfSlide, currentSlide);
+                        initialSlides.Add(predecesorSlide);
+                    }
+
+
+                }
+            }
+            else
+            {
+                // check with successor
+                if (score > scoreWithSuccesor)
+                {
+                    //Score of candiate with predecesor
+                    int anotherScore = EvaluateAdjacentSlides(currentSlide.GetTags(), successorSlide.GetTags());
+                    if (anotherScore > 0)
+                    {
+                        Slides.Insert(indexOfSlide + 1, currentSlide);
+                    }
+                    else
+                    {
+                        Slides.Remove(successorSlide);
+                        Slides.Insert(indexOfSlide + 1, currentSlide);
+                        initialSlides.Add(successorSlide);
+                    }
+                }
+            }
+
         }
     }
 }
