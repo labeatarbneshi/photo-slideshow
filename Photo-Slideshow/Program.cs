@@ -30,21 +30,13 @@ namespace PhotoSlideshow
                 collection.Photos = new List<Photo>();
                 while ((line = streamReader.ReadLine()) != null)
                 {
-                    if(lineNumber == 1)
+                    if (lineNumber == 1)
                     {
                         collection.Size = int.Parse(line);
                     }
                     else
                     {
-                        //if(lineNumber > 25)
-                        //{
-                        //    break;
-                        //}
-                        //var photoLine = ProcessLine(line, lineNumber);
-                        //if (photoLine.Orientation == Enums.Orientation.HORIZONTAL)
-                        //{
-                            collection.Photos.Add(ProcessLine(line, lineNumber));
-                        //}
+                        collection.Photos.Add(ProcessLine(line, lineNumber));
                     }
                     lineNumber++;
                 }
