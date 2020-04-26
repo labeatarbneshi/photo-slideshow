@@ -1,4 +1,4 @@
-﻿using Photo_Slideshow.Models;
+﻿using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

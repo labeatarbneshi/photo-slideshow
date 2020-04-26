@@ -1,4 +1,4 @@
-﻿using Photo_Slideshow;
+﻿using PhotoSlideshow;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
@@ -14,15 +14,15 @@ namespace PhotoSlideshow
         static void Main(string[] args)
         {
             ReadFile();
-            
-
             Console.ReadKey();
         }
 
         static void ReadFile()
         {
             Collection collection = new Collection();
-            var fileStream = new FileStream(@"C:\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
+
+            Console.WriteLine("Reading instance content...");
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
             {
                 string line;
@@ -36,12 +36,21 @@ namespace PhotoSlideshow
                     }
                     else
                     {
-                        collection.Photos.Add(ProcessLine(line, lineNumber));
+                        //if(lineNumber > 25)
+                        //{
+                        //    break;
+                        //}
+                        //var photoLine = ProcessLine(line, lineNumber);
+                        //if (photoLine.Orientation == Enums.Orientation.HORIZONTAL)
+                        //{
+                            collection.Photos.Add(ProcessLine(line, lineNumber));
+                        //}
                     }
                     lineNumber++;
                 }
             }
 
+            Console.WriteLine("Photo collection setup finished. Starting inital solution...");
             Solution solution = new Solution(collection);
             solution.Generate();
         }

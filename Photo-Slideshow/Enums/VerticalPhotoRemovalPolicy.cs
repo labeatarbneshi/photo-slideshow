@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Photo_Slideshow.Enums
+namespace PhotoSlideshow.Enums
 {
     public enum VerticalPhotoRemovalPolicy
     {

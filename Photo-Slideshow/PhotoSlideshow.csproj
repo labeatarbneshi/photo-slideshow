@@ -42,9 +42,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common.cs" />
     <Compile Include="Enums\VerticalPhotoRemovalPolicy.cs" />
     <Compile Include="Enums\Orientation.cs" />
-    <Compile Include="Models\CandidateSlide.cs" />
+    <Compile Include="Models\CandidatePhoto.cs" />
     <Compile Include="Models\Collection.cs" />
     <Compile Include="Models\Photo.cs" />
     <Compile Include="Models\Slide.cs" />
