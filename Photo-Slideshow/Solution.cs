@@ -1,4 +1,5 @@
-﻿using PhotoSlideshow.Enums;
+﻿using Photo_Slideshow;
+using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,9 @@ namespace PhotoSlideshow
         private readonly Collection Collection;
         private List<Photo> HorizontalPhotos;
         private List<Photo> VerticalPhotos;
+        private Slideshow Slideshow;
 
-        private Random random = new Random();
+        private readonly Random random = new Random();
         public Solution(Collection collection)
         {
             Collection = collection;
@@ -81,8 +83,15 @@ namespace PhotoSlideshow
             }
 
             int score = Common.EvaluateSolution(slides);
+
+            Slideshow = new Slideshow(slides, score);
+
             Console.WriteLine($"[SOLUTION] Total generated slides: {slides.Count}");
             Console.WriteLine($"Initial solution score: {score}");
+
+            Console.WriteLine($"[ILS] Optimizing solution...");
+            
+            ILS ils = new ILS(CopySolution(Slideshow));
         }
 
         /// <summary>
@@ -203,6 +212,14 @@ namespace PhotoSlideshow
             }
 
             return candidatePhotos.OrderByDescending(photo => photo.Score).First().Photo;
+        }
+
+        private Slideshow CopySolution(Slideshow slideshow)
+        {
+            List<Slide> slides = new List<Slide>(slideshow.Slides);
+            int score = slideshow.Score;
+
+            return new Slideshow(slides, score);
         }
     }
 }

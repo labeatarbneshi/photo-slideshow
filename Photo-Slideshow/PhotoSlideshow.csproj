@@ -45,6 +45,7 @@
     <Compile Include="Common.cs" />
     <Compile Include="Enums\VerticalPhotoRemovalPolicy.cs" />
     <Compile Include="Enums\Orientation.cs" />
+    <Compile Include="ILS.cs" />
     <Compile Include="Models\CandidatePhoto.cs" />
     <Compile Include="Models\Collection.cs" />
     <Compile Include="Models\Photo.cs" />
