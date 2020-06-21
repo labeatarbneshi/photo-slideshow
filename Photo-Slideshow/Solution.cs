@@ -23,13 +23,14 @@ namespace PhotoSlideshow
 
         public void Generate()
         {
-            Console.WriteLine("Generating solution...");
+            Console.WriteLine($"[{DateTime.Now}] Generating solution...");
 
             List<Photo> collectionPhotos = new List<Photo>(Collection.Photos);
             List<Slide> slides = new List<Slide>();
 
 
             //Find a random horizontal photo that will be in the first slide of slideshow
+            //HANDLE WHEN THERE IS NO HORIZONTAL PHOTO
             var currentPhoto = HorizontalPhotos[random.Next(0, HorizontalPhotos.Count)];
             var currentSlide = new Slide()
             {
@@ -87,11 +88,12 @@ namespace PhotoSlideshow
             Slideshow = new Slideshow(slides, score);
 
             Console.WriteLine($"[SOLUTION] Total generated slides: {slides.Count}");
-            Console.WriteLine($"Initial solution score: {score}");
+            Console.WriteLine($"{DateTime.Now} Initial solution score: {score}");
 
             Console.WriteLine($"[ILS] Optimizing solution...");
             
             ILS ils = new ILS(CopySolution(Slideshow));
+            ils.SwapSlides();
         }
 
         /// <summary>
@@ -114,7 +116,7 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            const int searchSpacePercentage = 15;
+            const int searchSpacePercentage = 5;
             const int noOfIterations = 3;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
@@ -154,8 +156,12 @@ namespace PhotoSlideshow
             }
 
             List<Photo> chosenPhotos = new List<Photo>();
-            CandidatePhoto chosenPhoto = candidatePhotos.OrderByDescending(photo => photo.Score).First();
+            CandidatePhoto chosenPhoto = CandidateSelectionProcess(candidatePhotos);
             chosenPhotos.Add(chosenPhoto.Photo);
+
+            //UNTIL HERE
+            //CandidatePhoto chosenPhoto = candidatePhotos.OrderByDescending(photo => photo.Score).First();
+            //chosenPhotos.Add(chosenPhoto.Photo);
 
             if (chosenPhoto.Photo.Orientation == Orientation.VERTICAL)
             {
@@ -172,7 +178,7 @@ namespace PhotoSlideshow
 
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 15;
+            const int searchSpacePercentage = 5;
             const int noOfIterations = 3;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
@@ -211,7 +217,30 @@ namespace PhotoSlideshow
                 return unselectedPhotos.Where(p => p.Id != firstVerticalPhoto.Id).OrderBy(photo => photo.NumberOfTags).First();
             }
 
-            return candidatePhotos.OrderByDescending(photo => photo.Score).First().Photo;
+            //return candidatePhotos.OrderByDescending(photo => photo.Score).First().Photo;
+            return CandidateSelectionProcess(candidatePhotos).Photo;
+        }
+
+        private CandidatePhoto CandidateSelectionProcess(List<CandidatePhoto> candidatePhotos)
+        {
+            var chosenCandidate = candidatePhotos.OrderByDescending(photo => photo.Score).First();
+            
+            if (candidatePhotos.Count == 1)
+            {
+                return chosenCandidate;
+            }
+
+            int maxScore = chosenCandidate.Score;
+            List<CandidatePhoto> candidates = candidatePhotos.FindAll(photo => photo.Score == maxScore);
+
+            if(candidates.Count == 1)
+            {
+                return chosenCandidate;
+            }
+
+            candidates = candidates.OrderBy(candidate => candidate.Photo.NumberOfTags).ToList();
+
+            return candidates.First();
         }
 
         private Slideshow CopySolution(Slideshow slideshow)
