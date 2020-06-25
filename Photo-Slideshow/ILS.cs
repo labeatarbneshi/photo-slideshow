@@ -32,26 +32,31 @@ namespace Photo_Slideshow
                     secondSlideIndex = random.Next(0, slideshow.Slides.Count);
                 } while (firstSlideIndex == secondSlideIndex);
 
+                var omittedSlide = -1;
+                if (secondSlideIndex - 1 == firstSlideIndex)
+                {
+                    omittedSlide = 1;
+                } else if(secondSlideIndex + 1 == firstSlideIndex)
+                {
+                    omittedSlide = 2;
+                }
+
                 var preSwapFirstSlideScore = CalculateSlideScore(firstSlideIndex);
-                var preSwapSecondSlideScore = CalculateSlideScore(secondSlideIndex);
+                var preSwapSecondSlideScore = CalculateSlideScore(secondSlideIndex, omittedSlide);
                 var preSwapSlideScore = preSwapFirstSlideScore + preSwapSecondSlideScore;
 
                 //Swap chosen slides
                 SwapSlidesPosition(slideshow.Slides, firstSlideIndex, secondSlideIndex);
 
                 var postSwapFirstSlideScore = CalculateSlideScore(firstSlideIndex);
-                var postSwapSecondSlideScore = CalculateSlideScore(secondSlideIndex);
+                var postSwapSecondSlideScore = CalculateSlideScore(secondSlideIndex, omittedSlide);
                 var postSwapScore = postSwapFirstSlideScore + postSwapSecondSlideScore;
 
                 if(postSwapScore > preSwapSlideScore)
                 {
-                    if(postSwapScore > 3)
-                    {
-                        Console.WriteLine(postSwapScore);
-                        Console.WriteLine(preSwapFirstSlideScore);
-                    }
-                    score = score - preSwapFirstSlideScore + postSwapScore;
+                    score = score - preSwapSlideScore + postSwapScore;
                     Console.WriteLine("[ILS] NEW SCORE: " + score);
+
                 } else
                 {
                     SwapSlidesPosition(slideshow.Slides, firstSlideIndex, secondSlideIndex);
@@ -63,7 +68,7 @@ namespace Photo_Slideshow
         }
 
         
-        public int CalculateSlideScore(int index)
+        public int CalculateSlideScore(int index, int omittedSlide = -1)
         {
             var startingIndex = index - 1;
             var noOfSlides = 3;
@@ -79,6 +84,16 @@ namespace Photo_Slideshow
             }
 
             var slides = slideshow.Slides.GetRange(startingIndex, noOfSlides);
+            if(omittedSlide != -1)
+            {
+                if (omittedSlide == 1)
+                {
+                    slides.RemoveAt(0);
+                }else
+                {
+                    slides.RemoveAt(slides.Count - 1);
+                }
+            }
             
             return Common.EvaluateSolution(slides);
         }

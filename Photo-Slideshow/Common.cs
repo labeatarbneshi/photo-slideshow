@@ -68,10 +68,10 @@ namespace PhotoSlideshow
 
             int photosToConsider = (int)Math.Floor(percentageOfCandidatePhotos * totalPhotos / 100);
 
-            if(photosToConsider < 100)
-            {
-                return 100;
-            }
+            //if(photosToConsider < 100)
+            //{
+            //    return 100;
+            //}
 
             return photosToConsider == 0 ? 1 : photosToConsider;
         }
