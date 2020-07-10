@@ -93,7 +93,7 @@ namespace PhotoSlideshow
             Console.WriteLine($"[ILS] Optimizing solution...");
             
             ILS ils = new ILS(CopySolution(Slideshow));
-            ils.SwapSlides();
+            ils.Optimize();
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            const int searchSpacePercentage = 15;
+            const int searchSpacePercentage = 1;
             const int noOfIterations = 3;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
@@ -166,8 +166,8 @@ namespace PhotoSlideshow
             if (chosenPhoto.Photo.Orientation == Orientation.VERTICAL)
             {
                 //Find another vertical photo to add to current slide
-                Photo secondVerticalPhoto = FindSecondVerticalPhotoForSlide(currentSlide, chosenPhoto.Photo, unselectedPhotos.FindAll(photo=>photo.Orientation == Orientation.VERTICAL), chosenPhoto.Score);
-                if(secondVerticalPhoto != null)
+                Photo secondVerticalPhoto = FindSecondVerticalPhotoForSlide(currentSlide, chosenPhoto.Photo, unselectedPhotos.FindAll(photo => photo.Orientation == Orientation.VERTICAL), chosenPhoto.Score);
+                if (secondVerticalPhoto != null)
                 {
                     chosenPhotos.Add(secondVerticalPhoto);
                 }
@@ -178,7 +178,7 @@ namespace PhotoSlideshow
 
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 15;
+            const int searchSpacePercentage = 1;
             const int noOfIterations = 3;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
