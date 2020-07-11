@@ -25,7 +25,9 @@ namespace Photo_Slideshow
             initialScore = slideshow.Score;
         }
 
-
+        /// <summary>
+        /// Starts solution optimizing by choosing operators randomly
+        /// </summary>
         public void Optimize()
         {
             stopwatch = Stopwatch.StartNew();
@@ -60,6 +62,10 @@ namespace Photo_Slideshow
             while (true);
         }
 
+        /// <summary>
+        /// Swap two randomly selected slides
+        /// </summary>
+        /// <returns>Result achiveed by swap</returns>
         public int SwapSlides()
         {
             var firstSlideIndex = random.Next(0, slideshow.Slides.Count);
@@ -106,6 +112,12 @@ namespace Photo_Slideshow
 
         }
 
+        /// <summary>
+        /// Calculates selected slide score with its neighbours
+        /// </summary>
+        /// <param name="index">Index of selected slide</param>
+        /// <param name="omittedSlide">Omits slides when calculating score when selected slides are first neighbours like k and k + 1 </param>
+        /// <returns>Score of slide with previous and next slide</returns>
         public int CalculateSlideScore(int index, int omittedSlide = -1)
         {
             var startingIndex = index - 1;
@@ -138,6 +150,13 @@ namespace Photo_Slideshow
             return Common.EvaluateSolution(slides);
         }
 
+        /// <summary>
+        /// Swaps position of two slides
+        /// </summary>
+        /// <param name="slides">List of slides</param>
+        /// <param name="firstSlideIndex">First slide index</param>
+        /// <param name="secondSlideIndex">Second slide index</param>
+        /// <returns>List of slides with new positions</returns>
         public List<Slide> SwapSlidesPosition(List<Slide> slides, int firstSlideIndex, int secondSlideIndex)
         {
             var tmp = slides[firstSlideIndex];
@@ -147,6 +166,10 @@ namespace Photo_Slideshow
             return slides;
         }
 
+        /// <summary>
+        /// Randomly selects two slides with vertical photos and generates all slides from given photos by calculating score.
+        /// </summary>
+        /// <returns>The highest score from combination of photos</returns>
         public int SwapVerticalSlidePhotos()
         {
             var firstSlideIndex = random.Next(0, verticalSlides.Count);
@@ -240,6 +263,14 @@ namespace Photo_Slideshow
         }
 
 
+        /// <summary>
+        /// Swaps photos between two vertical slides
+        /// </summary>
+        /// <param name="firstSlide">First chosen slide</param>
+        /// <param name="secondSlide">Second chosen slide</param>
+        /// <param name="firstPhotoIndex">Index of first photo on first slide</param>
+        /// <param name="secondPhotoIndex">Index of second photo on second slide</param>
+        /// <returns>List with newly generated slides</returns>
         public List<Slide> SwapPhotos(Slide firstSlide, Slide secondSlide, int firstPhotoIndex, int secondPhotoIndex)
         {
             Photo temp = firstSlide.Photos[firstPhotoIndex];
@@ -255,6 +286,11 @@ namespace Photo_Slideshow
             return slides;
         }
 
+        /// <summary>
+        /// Copies a slide
+        /// </summary>
+        /// <param name="slide"></param>
+        /// <returns>A copy of a given slide</returns>
         public Slide CopySlide(Slide slide)
         {
             List<Photo> photos = new List<Photo>(slide.Photos);
