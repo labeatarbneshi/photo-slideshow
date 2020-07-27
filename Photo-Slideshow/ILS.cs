@@ -1,10 +1,12 @@
-﻿using PhotoSlideshow;
+﻿using Photo_Slideshow.Models;
+using PhotoSlideshow;
 using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +20,7 @@ namespace Photo_Slideshow
         private readonly int initialScore;
         private Random random = new Random();
         private Stopwatch stopwatch;
+        private Stopwatch timeWithoutProgress;
         public ILS(Slideshow slideshow)
         {
             this.slideshow = slideshow;
@@ -31,16 +34,18 @@ namespace Photo_Slideshow
         public void Optimize()
         {
             stopwatch = Stopwatch.StartNew();
+            timeWithoutProgress = Stopwatch.StartNew();
             var score = initialScore;
             do
             {
                 var rnd = random.Next(1, 11);
-                if (rnd < 9)
+                if (rnd < 6)
                 {
                     var result = SwapSlides();
                     score += result;
                     if (result > 0)
                     {
+                        //timeWithoutProgress.Restart();
                         stopwatch.Restart();
                         Console.WriteLine("NEW SCORE:" + score);
                     }
@@ -49,17 +54,54 @@ namespace Photo_Slideshow
                 else
                 {
                     var a = SwapVerticalSlidePhotos();
-                    score += a;
+                    score += a.Score;
 
-
-                    if (a > 0)
+                    if(a.Score < 0)
                     {
+                        var result = HardSwap(a.FirstIndex, 20);
+                        score += result;
+                        if (result > 0)
+                        {
+                            //timeWithoutProgress.Restart();
+                            stopwatch.Restart();
+                            Console.WriteLine("NEW SCORE:" + score);
+                        }
+
+                        var result1 = HardSwap(a.SecondIndex, 20);
+                        score += result1;
+                        if (result1 > 0)
+                        {
+                            //timeWithoutProgress.Restart();
+                            stopwatch.Restart();
+                            Console.WriteLine("NEW SCORE:" + score);
+                        }
+                    } 
+
+                    else if (a.Score > 0)
+                    {
+                        //timeWithoutProgress.Restart();
                         stopwatch.Restart();
                         Console.WriteLine("NEW SCORE:" + score);
                     }
                 }
             }
-            while (true);
+            while (timeWithoutProgress.ElapsedMilliseconds < 300000);
+
+            using (StreamWriter w = File.AppendText("submission.txt"))
+            {
+                foreach (var s in slideshow.Slides)
+                {
+                    if(s.Photos.Count > 1)
+                    {
+                        int a = s.Photos[0].Id - 1;
+                        int b = s.Photos[1].Id - 1;
+                        w.WriteLine(a + " " + b);
+                    } else
+                    {
+                        w.WriteLine(s.Photos[0].Id - 1);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -69,12 +111,24 @@ namespace Photo_Slideshow
         public int SwapSlides()
         {
             var firstSlideIndex = random.Next(0, slideshow.Slides.Count);
+            var firstSlide = slideshow.Slides[firstSlideIndex];
 
+            Slide secondSlide;
             int secondSlideIndex;
+            var repeat = false;
             do
             {
+                repeat = false;
                 secondSlideIndex = random.Next(0, slideshow.Slides.Count);
-            } while (firstSlideIndex == secondSlideIndex);
+                secondSlide = slideshow.Slides[secondSlideIndex];
+                if(secondSlide.Photos.Count ==1 )
+                {
+                    if(firstSlide.ComparedPhotos.Contains(secondSlide.Photos[0]))
+                    {
+                        repeat = true;
+                    }
+                }
+            } while (firstSlideIndex == secondSlideIndex || repeat);
 
             var omittedSlide = -1;
             if (secondSlideIndex - 1 == firstSlideIndex)
@@ -108,8 +162,6 @@ namespace Photo_Slideshow
 
                 return 0;
             }
-
-
         }
 
         /// <summary>
@@ -170,7 +222,7 @@ namespace Photo_Slideshow
         /// Randomly selects two slides with vertical photos and generates all slides from given photos by calculating score.
         /// </summary>
         /// <returns>The highest score from combination of photos</returns>
-        public int SwapVerticalSlidePhotos()
+        public VerticalSwap SwapVerticalSlidePhotos()
         {
             var firstSlideIndex = random.Next(0, verticalSlides.Count);
 
@@ -186,7 +238,7 @@ namespace Photo_Slideshow
 
             if (firstSlide == null || secondSlide == null)
             {
-                return 0;
+                return new VerticalSwap() { Score = 0 };
             }
 
             var firstSlideIndexInSlideshow = slideshow.Slides.FindIndex(s => s.Id == firstSlide.Id);
@@ -230,15 +282,15 @@ namespace Photo_Slideshow
                 slideshow.Slides[firstSlideIndexInSlideshow] = firstPhotoSwap[0];
                 slideshow.Slides[secondSlideIndexInSlideshow] = firstPhotoSwap[1];
 
-                return postFirstSwap - preSwapScore;
+                return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = postFirstSwap - preSwapScore };
             }
             
             if(postSecondSwap >= preSwapScore)
             {
-                return postSecondSwap - preSwapScore;
+                return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = postSecondSwap - preSwapScore };
             }
 
-            if (stopwatch.ElapsedMilliseconds > 5000)
+            if (stopwatch.ElapsedMilliseconds > 15000)
             {
                 stopwatch.Restart();
                 var chosenMutation = random.Next(1, 3);
@@ -246,19 +298,22 @@ namespace Photo_Slideshow
                 {
                     slideshow.Slides[firstSlideIndexInSlideshow] = firstPhotoSwap[0];
                     slideshow.Slides[secondSlideIndexInSlideshow] = firstPhotoSwap[1];
+                    return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = postFirstSwap - preSwapScore };
 
-                    return postFirstSwap - preSwapScore;
+                    //return postFirstSwap - preSwapScore;
                 }
                 else
                 {
-                    return postSecondSwap - preSwapScore;
+                    return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = postSecondSwap - preSwapScore };
+
+                    //return postSecondSwap - preSwapScore;
                 }
             }
             else
             {
                 slideshow.Slides[firstSlideIndexInSlideshow] = firstSlide;
                 slideshow.Slides[secondSlideIndexInSlideshow] = secondSlide;
-                return 0;
+                return new VerticalSwap() { Score = 0 };
             }
         }
 
@@ -296,6 +351,58 @@ namespace Photo_Slideshow
             List<Photo> photos = new List<Photo>(slide.Photos);
 
             return new Slide() { Id = slide.Id, Photos = photos };
+        }
+
+        public int HardSwap(int firstSlideIndex, int iterations)
+        {
+            bool betterScore = false;
+            int secondSlideIndex;
+            int i = 0;
+            int score = 0;
+            do
+            {
+                do
+                {
+                    secondSlideIndex = random.Next(0, slideshow.Slides.Count);
+
+                } while (firstSlideIndex == secondSlideIndex);
+
+                var omittedSlide = -1;
+                if (secondSlideIndex - 1 == firstSlideIndex)
+                {
+                    omittedSlide = 1;
+                }
+                else if (secondSlideIndex + 1 == firstSlideIndex)
+                {
+                    omittedSlide = 2;
+                }
+
+                var preSwapFirstSlideScore = CalculateSlideScore(firstSlideIndex);
+                var preSwapSecondSlideScore = CalculateSlideScore(secondSlideIndex, omittedSlide);
+                var preSwapScore = preSwapFirstSlideScore + preSwapSecondSlideScore;
+
+                //Swap chosen slides
+                SwapSlidesPosition(slideshow.Slides, firstSlideIndex, secondSlideIndex);
+
+                var postSwapFirstSlideScore = CalculateSlideScore(firstSlideIndex);
+                var postSwapSecondSlideScore = CalculateSlideScore(secondSlideIndex, omittedSlide);
+                var postSwapScore = postSwapFirstSlideScore + postSwapSecondSlideScore;
+
+                if (postSwapScore > preSwapScore)
+                {
+                    score = postSwapScore - preSwapScore;
+
+                }
+                else
+                {
+                    SwapSlidesPosition(slideshow.Slides, firstSlideIndex, secondSlideIndex);
+                }
+
+                i++;
+
+            } while (betterScore == true && i < iterations);
+
+            return score;
         }
     }
 }

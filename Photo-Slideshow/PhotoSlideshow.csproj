@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CandidateSwap.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Enums\VerticalPhotoRemovalPolicy.cs" />
     <Compile Include="Enums\Orientation.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="Models\Photo.cs" />
     <Compile Include="Models\Slide.cs" />
     <Compile Include="Models\Slideshow.cs" />
+    <Compile Include="Models\VerticalSwap.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Solution.cs" />

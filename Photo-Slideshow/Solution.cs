@@ -116,8 +116,8 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            const int searchSpacePercentage = 1;
-            const int noOfIterations = 3;
+            const int searchSpacePercentage = 5;
+            const int noOfIterations = 1;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
 
@@ -130,6 +130,9 @@ namespace PhotoSlideshow
 
                 foreach (var photo in searchSpacePhotos)
                 {
+                    if (photo.Orientation == Orientation.HORIZONTAL) {
+                        currentSlide.ComparedPhotos.Add(photo);
+                    }
                     int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags);
 
                     if (score > 0)
@@ -178,8 +181,8 @@ namespace PhotoSlideshow
 
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 1;
-            const int noOfIterations = 3;
+            const int searchSpacePercentage = 5;
+            const int noOfIterations = 1;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
 

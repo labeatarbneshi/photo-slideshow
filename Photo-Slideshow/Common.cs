@@ -61,7 +61,7 @@ namespace PhotoSlideshow
         /// <returns></returns>
         public static int CalculatePhotosToConsider(double percentageOfCandidatePhotos, int totalPhotos)
         {
-            return 10;
+            return 1;
             if (totalPhotos <= 100)
             {
                 return totalPhotos;
