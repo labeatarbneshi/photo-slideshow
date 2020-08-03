@@ -20,7 +20,7 @@ namespace PhotoSlideshow
         static void ReadFile()
         {
             Collection collection = new Collection();
-            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\d_pet_pictures.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\b_lovely_landscapes.txt", FileMode.Open, FileAccess.Read);
 
             Console.WriteLine("Reading instance content...");
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))

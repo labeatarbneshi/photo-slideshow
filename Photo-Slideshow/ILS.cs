@@ -39,7 +39,7 @@ namespace Photo_Slideshow
             do
             {
                 var rnd = random.Next(1, 11);
-                if (rnd < 6)
+                if (rnd < 11)
                 {
                     var result = SwapSlides();
                     score += result;
@@ -58,7 +58,7 @@ namespace Photo_Slideshow
 
                     if(a.Score < 0)
                     {
-                        var result = HardSwap(a.FirstIndex, 20);
+                        var result = HardSwap(a.FirstIndex, 50);
                         score += result;
                         if (result > 0)
                         {
@@ -67,7 +67,7 @@ namespace Photo_Slideshow
                             Console.WriteLine("NEW SCORE:" + score);
                         }
 
-                        var result1 = HardSwap(a.SecondIndex, 20);
+                        var result1 = HardSwap(a.SecondIndex, 50);
                         score += result1;
                         if (result1 > 0)
                         {
@@ -85,7 +85,7 @@ namespace Photo_Slideshow
                     }
                 }
             }
-            while (timeWithoutProgress.ElapsedMilliseconds < 300000);
+            while (timeWithoutProgress.ElapsedMilliseconds < 7200000);
 
             using (StreamWriter w = File.AppendText("submission.txt"))
             {
@@ -130,6 +130,9 @@ namespace Photo_Slideshow
                 }
             } while (firstSlideIndex == secondSlideIndex || repeat);
 
+            firstSlide.ComparedPhotos.Add(secondSlide.Photos[0]);
+            secondSlide.ComparedPhotos.Add(firstSlide.Photos[0]);
+
             var omittedSlide = -1;
             if (secondSlideIndex - 1 == firstSlideIndex)
             {
@@ -151,7 +154,7 @@ namespace Photo_Slideshow
             var postSwapSecondSlideScore = CalculateSlideScore(secondSlideIndex, omittedSlide);
             var postSwapScore = postSwapFirstSlideScore + postSwapSecondSlideScore;
 
-            if (postSwapScore > preSwapScore)
+            if (postSwapScore >= preSwapScore)
             {
                 return postSwapScore - preSwapScore;
 
@@ -290,7 +293,7 @@ namespace Photo_Slideshow
                 return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = postSecondSwap - preSwapScore };
             }
 
-            if (stopwatch.ElapsedMilliseconds > 15000)
+            if (stopwatch.ElapsedMilliseconds > 60000 && Math.Min(postFirstSwap, postSecondSwap) <= 3)
             {
                 stopwatch.Restart();
                 var chosenMutation = random.Next(1, 3);
