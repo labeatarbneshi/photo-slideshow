@@ -85,10 +85,12 @@ namespace Photo_Slideshow
                     }
                 }
             }
-            while (timeWithoutProgress.ElapsedMilliseconds < 7200000);
+            while (timeWithoutProgress.ElapsedMilliseconds < 300000);
 
-            using (StreamWriter w = File.AppendText("submission.txt"))
+            using (StreamWriter w = File.AppendText("c.txt"))
             {
+                Console.WriteLine("FINISHED WITH SCORE" + score);
+                w.WriteLine(slideshow.Slides.Count);
                 foreach (var s in slideshow.Slides)
                 {
                     if(s.Photos.Count > 1)
@@ -98,7 +100,7 @@ namespace Photo_Slideshow
                         w.WriteLine(a + " " + b);
                     } else
                     {
-                        w.WriteLine(s.Photos[0].Id - 1);
+                        w.WriteLine(s.Photos[0].Id - 2);
                     }
                 }
             }
@@ -293,7 +295,7 @@ namespace Photo_Slideshow
                 return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = postSecondSwap - preSwapScore };
             }
 
-            if (stopwatch.ElapsedMilliseconds > 60000 && Math.Min(postFirstSwap, postSecondSwap) <= 3)
+            if (stopwatch.ElapsedMilliseconds > 10000 && Math.Min(postFirstSwap, postSecondSwap) <= 3)
             {
                 stopwatch.Restart();
                 var chosenMutation = random.Next(1, 3);
