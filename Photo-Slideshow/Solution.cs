@@ -116,7 +116,7 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            const int searchSpacePercentage = 15;
+            const int searchSpacePercentage = 1;
             const int noOfIterations = 1;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
@@ -181,7 +181,7 @@ namespace PhotoSlideshow
 
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 15;
+            const int searchSpacePercentage = 1;
             const int noOfIterations = 1;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);

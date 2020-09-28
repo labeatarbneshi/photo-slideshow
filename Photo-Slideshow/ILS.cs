@@ -4,12 +4,9 @@ using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Photo_Slideshow
 {
@@ -39,7 +36,7 @@ namespace Photo_Slideshow
             do
             {
                 var rnd = random.Next(1, 11);
-                if (rnd < 11)
+                if (rnd  < 5)
                 {
                     var result = SwapSlides();
                     score += result;
@@ -51,12 +48,13 @@ namespace Photo_Slideshow
                     }
 
                 }
-                else
+
+                else if (rnd < 11)
                 {
                     var a = SwapVerticalSlidePhotos();
                     score += a.Score;
 
-                    if(a.Score < 0)
+                    if (a.Score < 0)
                     {
                         var result = HardSwap(a.FirstIndex, 50);
                         score += result;
@@ -75,7 +73,7 @@ namespace Photo_Slideshow
                             stopwatch.Restart();
                             Console.WriteLine("NEW SCORE:" + score);
                         }
-                    } 
+                    }
 
                     else if (a.Score > 0)
                     {
@@ -85,18 +83,18 @@ namespace Photo_Slideshow
                     }
                 }
             }
-            while (timeWithoutProgress.ElapsedMilliseconds < 300000);
+            while (timeWithoutProgress.ElapsedMilliseconds < 1800000);
 
             using (StreamWriter w = File.AppendText("c.txt"))
             {
-                Console.WriteLine("FINISHED WITH SCORE" + score);
+                Console.WriteLine("FINISHED WITH SCORE" + initialScore);
                 w.WriteLine(slideshow.Slides.Count);
                 foreach (var s in slideshow.Slides)
                 {
                     if(s.Photos.Count > 1)
                     {
-                        int a = s.Photos[0].Id - 1;
-                        int b = s.Photos[1].Id - 1;
+                        int a = s.Photos[0].Id - 2;
+                        int b = s.Photos[1].Id - 2;
                         w.WriteLine(a + " " + b);
                     } else
                     {
