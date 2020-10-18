@@ -10,7 +10,6 @@ namespace PhotoSlideshow.Models
     {
         public int Id { get; set; }
         public Photo Photo { get; set; }
-        public bool IsUsed { get; set; }
         public int Score { get; set; }
     }
 }
