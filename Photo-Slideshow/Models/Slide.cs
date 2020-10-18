@@ -1,9 +1,5 @@
-﻿using PhotoSlideshow.Models;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PhotoSlideshow.Models
 {
@@ -11,8 +7,6 @@ namespace PhotoSlideshow.Models
     {
         public int Id { get; set; }
         public List<Photo> Photos { get; set; }
-
-        // TODO: Save compared photos
         public List<Photo> ComparedPhotos { get; set; } = new List<Photo>();
         public List<string> GetTags()
         {

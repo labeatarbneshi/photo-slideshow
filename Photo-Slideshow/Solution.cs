@@ -1,5 +1,4 @@
-﻿using Photo_Slideshow;
-using PhotoSlideshow.Enums;
+﻿using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;

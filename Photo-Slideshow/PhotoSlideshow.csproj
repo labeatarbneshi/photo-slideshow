@@ -42,9 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CandidateSwap.cs" />
+    <Compile Include="Models\CandidateSwap.cs" />
     <Compile Include="Common.cs" />
-    <Compile Include="Enums\VerticalPhotoRemovalPolicy.cs" />
     <Compile Include="Enums\Orientation.cs" />
     <Compile Include="ILS.cs" />
     <Compile Include="Models\CandidatePhoto.cs" />

@@ -1,4 +1,4 @@
-﻿using Photo_Slideshow.Models;
+﻿using PhotoSlideshow.Models;
 using PhotoSlideshow;
 using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace Photo_Slideshow
+namespace PhotoSlideshow
 {
     class ILS
     {
