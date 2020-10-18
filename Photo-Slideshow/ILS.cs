@@ -35,43 +35,42 @@ namespace Photo_Slideshow
             var score = initialScore;
             do
             {
-                var rnd = random.Next(1, 11);
-                if (rnd  < 5)
+                var rnd = random.Next(1, 15);
+                if (rnd <= 5)
                 {
                     var result = SwapSlides();
                     score += result;
                     if (result > 0)
                     {
-                        //timeWithoutProgress.Restart();
                         stopwatch.Restart();
-                        Console.WriteLine("NEW SCORE:" + score);
+                        Console.WriteLine("NEW SCORE FROM HORIZONTAL SWAP: " + score);
                     }
 
                 }
 
-                else if (rnd < 11)
+                else if (rnd > 5 && rnd <= 10)
                 {
                     var a = SwapVerticalSlidePhotos();
                     score += a.Score;
 
                     if (a.Score < 0)
                     {
-                        var result = HardSwap(a.FirstIndex, 50);
+                        var result = HardSwap(a.FirstIndex, 10);
                         score += result;
                         if (result > 0)
                         {
                             //timeWithoutProgress.Restart();
                             stopwatch.Restart();
-                            Console.WriteLine("NEW SCORE:" + score);
+                            Console.WriteLine("NEW SCORE FROM VERTICAL SWAP: " + score);
                         }
 
-                        var result1 = HardSwap(a.SecondIndex, 50);
+                        var result1 = HardSwap(a.SecondIndex, 10);
                         score += result1;
                         if (result1 > 0)
                         {
                             //timeWithoutProgress.Restart();
                             stopwatch.Restart();
-                            Console.WriteLine("NEW SCORE:" + score);
+                            Console.WriteLine("NEW SCORE FROM VERTICAL SWAP: " + score);
                         }
                     }
 
@@ -79,8 +78,21 @@ namespace Photo_Slideshow
                     {
                         //timeWithoutProgress.Restart();
                         stopwatch.Restart();
-                        Console.WriteLine("NEW SCORE:" + score);
+                        Console.WriteLine("NEW SCORE FROM VERTICAL SWAP: " + score);
                     }
+                }
+
+                else if (rnd > 10)
+                {
+                    var shuffleScore = ShuffleSlides(random.Next(4, 12));
+                    if (shuffleScore > 0)
+                    {
+                        stopwatch.Restart();
+                        score += shuffleScore;
+                        Console.WriteLine("NEW SCORE FROM SHUFFLE: " + score);
+
+                    }
+
                 }
             }
             while (timeWithoutProgress.ElapsedMilliseconds < 1800000);
@@ -406,6 +418,40 @@ namespace Photo_Slideshow
             } while (betterScore == true && i < iterations);
 
             return score;
+        }
+
+        public int ShuffleSlides(int length)
+        {
+            var index = random.Next(0, slideshow.Slides.Count);
+            if (index + length > slideshow.Slides.Count)
+            {
+                index = slideshow.Slides.Count - length;
+            }
+            List<Slide> slides = new List<Slide>();
+            slides.AddRange(slideshow.Slides.GetRange(index, length));
+
+            int preShuffleScore = Common.EvaluateSolution(slides);
+
+            List<Slide> slidesToShuffle = new List<Slide>();
+            slidesToShuffle.AddRange(slides.GetRange(1, slides.Count - 2));
+
+            var shuffledList = slidesToShuffle.OrderBy(x => Guid.NewGuid()).ToList();
+            shuffledList.Insert(0, slides[0]);
+            shuffledList.Add(slides[slides.Count - 1]);
+
+            int postShuffleScore = Common.EvaluateSolution(shuffledList);
+
+            if (preShuffleScore > postShuffleScore)
+            {
+                return 0;
+            }
+
+            for (int i = index + 1, j = 1; i < index + length - 1; i++, j++)
+            {
+                slideshow.Slides[i] = shuffledList[j];
+            }
+
+            return postShuffleScore - preShuffleScore;
         }
     }
 }
