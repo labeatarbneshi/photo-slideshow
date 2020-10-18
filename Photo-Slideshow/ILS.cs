@@ -1,6 +1,4 @@
-﻿using PhotoSlideshow.Models;
-using PhotoSlideshow;
-using PhotoSlideshow.Enums;
+﻿using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
@@ -15,7 +13,7 @@ namespace PhotoSlideshow
         private readonly Slideshow slideshow;
         private readonly List<Slide> verticalSlides;
         private readonly int initialScore;
-        private Random random = new Random();
+        private readonly Random random = new Random();
         private Stopwatch stopwatch;
         private Stopwatch timeWithoutProgress;
         public ILS(Slideshow slideshow)
@@ -127,7 +125,7 @@ namespace PhotoSlideshow
 
             Slide secondSlide;
             int secondSlideIndex;
-            var repeat = false;
+            bool repeat;
             do
             {
                 repeat = false;
@@ -282,15 +280,13 @@ namespace PhotoSlideshow
             var firstSecondPhotoSwapScore = CalculateSlideScore(secondSlideIndexInSlideshow, omittedSlide);
             var postFirstSwap = firstfirstPhotoSwapScore + firstSecondPhotoSwapScore;
 
-            //// SECOND SWAP
+            // SECOND SWAP
             var secondPhotoSwap = SwapPhotos(CopySlide(firstSlide), CopySlide(secondSlide), 0, 1);
             slideshow.Slides[firstSlideIndexInSlideshow] = secondPhotoSwap[0];
             slideshow.Slides[secondSlideIndexInSlideshow] = secondPhotoSwap[1];
             var secondfirstPhotoSwapScore = CalculateSlideScore(firstSlideIndexInSlideshow);
             var secondSecondPhotoSwapScore = CalculateSlideScore(secondSlideIndexInSlideshow, omittedSlide);
             var postSecondSwap = secondfirstPhotoSwapScore + secondSecondPhotoSwapScore;
-
-            var acceptMutationRate = random.Next(1, 101);
 
             if (postFirstSwap >= preSwapScore)
             {
