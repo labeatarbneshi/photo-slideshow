@@ -129,5 +129,17 @@ namespace PhotoSlideshow
 
             return EvaluateSolution(slides);
         }
+
+        /// <summary>
+        /// Copies a slide
+        /// </summary>
+        /// <param name="slide"></param>
+        /// <returns>A copy of a given slide</returns>
+        public static Slide CopySlide(Slide slide)
+        {
+            List<Photo> photos = new List<Photo>(slide.Photos);
+
+            return new Slide() { Id = slide.Id, Photos = photos };
+        }
     }
 }
