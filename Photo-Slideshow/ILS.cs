@@ -34,64 +34,39 @@ namespace PhotoSlideshow
             var score = initialScore;
             do
             {
-                var rnd = random.Next(1, 15);
-                if (rnd <= 5)
-                {
-                    var result = Swap.SwapSlides(slideshow);
-                    score += result;
-                    if (result > 0)
-                    {
-                        stopwatch.Restart();
-                        Console.WriteLine("NEW SCORE FROM HORIZONTAL SWAP: " + score);
-                    }
+                var randomOperator = random.Next(1, 11);
 
+                var gainFromOperator = 0;
+                if (randomOperator <= 5)
+                {
+                    gainFromOperator = Swap.SwapSlides(slideshow);
                 }
 
-                else if (rnd > 5 && rnd <= 10)
+                else if (randomOperator > 5 && randomOperator <= 10)
                 {
-                    var a = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, stopwatch);
-                    score += a.Score;
+                    var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, stopwatch);
+                    gainFromOperator = verticalSwap.Score;
 
-                    if (a.Score < 0)
+                    if (verticalSwap.Score < 0)
                     {
-                        var result = Swap.HardSwap(slideshow, a.FirstIndex, 10);
-                        score += result;
-                        if (result > 0)
-                        {
-                            //timeWithoutProgress.Restart();
-                            stopwatch.Restart();
-                            Console.WriteLine("NEW SCORE FROM VERTICAL SWAP: " + score);
-                        }
+                        var hardSwapWithFirstIndex = Swap.HardSwap(slideshow, verticalSwap.FirstIndex, 30);
+                        gainFromOperator = hardSwapWithFirstIndex;
 
-                        var result1 = Swap.HardSwap(slideshow, a.SecondIndex, 10);
-                        score += result1;
-                        if (result1 > 0)
-                        {
-                            //timeWithoutProgress.Restart();
-                            stopwatch.Restart();
-                            Console.WriteLine("NEW SCORE FROM VERTICAL SWAP: " + score);
-                        }
-                    }
-
-                    else if (a.Score > 0)
-                    {
-                        //timeWithoutProgress.Restart();
-                        stopwatch.Restart();
-                        Console.WriteLine("NEW SCORE FROM VERTICAL SWAP: " + score);
+                        var hardSwapWithSecondIndex = Swap.HardSwap(slideshow, verticalSwap.SecondIndex, 30);
+                        gainFromOperator += hardSwapWithSecondIndex;
                     }
                 }
 
-                else if (rnd > 10)
+                else if (randomOperator > 10)
                 {
-                    var shuffleScore = Shuffle.ShuffleSlides(slideshow, random.Next(4, 12));
-                    if (shuffleScore > 0)
-                    {
-                        stopwatch.Restart();
-                        score += shuffleScore;
-                        Console.WriteLine("NEW SCORE FROM SHUFFLE: " + score);
+                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 12));
+                }
 
-                    }
-
+                if (gainFromOperator > 0)
+                {
+                    stopwatch.Restart();
+                    score += gainFromOperator;
+                    Console.WriteLine("NEW SCORE: " + score);
                 }
             }
             while (timeWithoutProgress.ElapsedMilliseconds < 1800000);
