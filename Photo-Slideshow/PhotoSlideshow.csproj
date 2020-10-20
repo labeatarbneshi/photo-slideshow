@@ -52,6 +52,7 @@
     <Compile Include="Models\Slide.cs" />
     <Compile Include="Models\Slideshow.cs" />
     <Compile Include="Models\VerticalSwap.cs" />
+    <Compile Include="Operators\Swap.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Solution.cs" />

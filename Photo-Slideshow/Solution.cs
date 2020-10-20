@@ -89,10 +89,10 @@ namespace PhotoSlideshow
             Console.WriteLine($"[SOLUTION] Total generated slides: {slides.Count}");
             Console.WriteLine($"{DateTime.Now} Initial solution score: {score}");
 
-            //Console.WriteLine($"[ILS] Optimizing solution...");
-            
-            //ILS ils = new ILS(CopySolution(Slideshow));
-            //ils.Optimize();
+            Console.WriteLine($"[ILS] Optimizing solution...");
+
+            ILS ils = new ILS(CopySolution(Slideshow));
+            ils.Optimize();
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            const int searchSpacePercentage = 100;
+            const int searchSpacePercentage = 1;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
 
@@ -181,7 +181,7 @@ namespace PhotoSlideshow
         /// <returns></returns>
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 100;
+            const int searchSpacePercentage = 1;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
 

@@ -2,7 +2,7 @@
 
 namespace PhotoSlideshow.Models
 {
-    class Slideshow
+    public class Slideshow
     {
         public List<Slide> Slides { get; set; }
         public int Score { get; set; }
