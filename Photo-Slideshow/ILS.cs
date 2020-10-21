@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Photo_Slideshow.Configuration;
+using PhotoSlideshow.Configuration;
 
 namespace PhotoSlideshow
 {
@@ -18,6 +18,7 @@ namespace PhotoSlideshow
         private readonly Random random = new Random();
         private Stopwatch stopwatch;
         private Stopwatch timeWithoutProgress;
+        private Stopwatch verticalSwapStopwatch;
         public ILS(Slideshow slideshow)
         {
             this.slideshow = slideshow;
@@ -32,6 +33,7 @@ namespace PhotoSlideshow
         {
             stopwatch = Stopwatch.StartNew();
             timeWithoutProgress = Stopwatch.StartNew();
+            verticalSwapStopwatch = Stopwatch.StartNew();
             var score = initialScore;
             do
             {
@@ -45,7 +47,7 @@ namespace PhotoSlideshow
 
                 else if (randomOperator > ConfigurationConsts.SlideSwapUpperFrequency && randomOperator <= 7)
                 {
-                    var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, stopwatch);
+                    var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, stopwatch, verticalSwapStopwatch);
                     gainFromOperator = verticalSwap.Score;
 
                     if (verticalSwap.Score < 0)
@@ -67,7 +69,7 @@ namespace PhotoSlideshow
                 if (gainFromOperator > 0)
                 {
                     stopwatch.Restart();
-                    Console.WriteLine("NEW SCORE: " + score);
+                    Console.WriteLine("NEW SCORE: " + Common.EvaluateSolution(slideshow.Slides));
                 }
             }
             while (timeWithoutProgress.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
