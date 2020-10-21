@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Photo_Slideshow.Configuration;
 
 namespace PhotoSlideshow
 {
@@ -37,12 +38,12 @@ namespace PhotoSlideshow
                 var randomOperator = random.Next(1, 11);
 
                 var gainFromOperator = 0;
-                if (randomOperator <= 5)
+                if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
                 {
                     gainFromOperator = Swap.SwapSlides(slideshow);
                 }
 
-                else if (randomOperator > 5 && randomOperator <= 10)
+                else if (randomOperator > ConfigurationConsts.SlideSwapUpperFrequency && randomOperator <= 7)
                 {
                     var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, stopwatch);
                     gainFromOperator = verticalSwap.Score;
@@ -50,30 +51,30 @@ namespace PhotoSlideshow
                     if (verticalSwap.Score < 0)
                     {
                         var hardSwapWithFirstIndex = Swap.HardSwap(slideshow, verticalSwap.FirstIndex, 30);
-                        gainFromOperator = hardSwapWithFirstIndex;
+                        gainFromOperator += hardSwapWithFirstIndex;
 
                         var hardSwapWithSecondIndex = Swap.HardSwap(slideshow, verticalSwap.SecondIndex, 30);
                         gainFromOperator += hardSwapWithSecondIndex;
                     }
                 }
 
-                else if (randomOperator > 10)
+                else if (randomOperator > 7)
                 {
                     gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 12));
                 }
 
+                score += gainFromOperator;
                 if (gainFromOperator > 0)
                 {
                     stopwatch.Restart();
-                    score += gainFromOperator;
                     Console.WriteLine("NEW SCORE: " + score);
                 }
             }
-            while (timeWithoutProgress.ElapsedMilliseconds < 1800000);
+            while (timeWithoutProgress.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
 
             using (StreamWriter w = File.AppendText("c.txt"))
             {
-                Console.WriteLine("FINISHED WITH SCORE" + initialScore);
+                Console.WriteLine("FINISHED WITH SCORE" + score);
                 w.WriteLine(slideshow.Slides.Count);
                 foreach (var s in slideshow.Slides)
                 {

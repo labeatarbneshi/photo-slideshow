@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ConfigurationConsts.cs" />
     <Compile Include="Models\CandidateSwap.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Enums\Orientation.cs" />
