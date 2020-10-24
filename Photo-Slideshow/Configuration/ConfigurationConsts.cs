@@ -10,5 +10,6 @@ namespace PhotoSlideshow.Configuration
     {
         public static long RunDuration = 1800000;
         public static int SlideSwapUpperFrequency = 4;
+        public static int AcceptBadSolutionAfterMillis = 15000;
     }
 }

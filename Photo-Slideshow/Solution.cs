@@ -115,9 +115,7 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            const int searchSpacePercentage = 1;
-
-            int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
+            int slidingWindow = Common.CalculatePhotosToConsider(0, unselectedPhotos.Count);
 
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
 
@@ -142,10 +140,10 @@ namespace PhotoSlideshow
                     });
                 }
 
-                if (candidatePhotos.Count != 0)
-                {
-                    break;
-                }
+                //if (candidatePhotos.Count != 0)
+                //{
+                //    break;
+                //}
             }
 
 
@@ -183,7 +181,7 @@ namespace PhotoSlideshow
         {
             const int searchSpacePercentage = 1;
 
-            int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
+            int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count, true);
 
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
 
@@ -204,16 +202,16 @@ namespace PhotoSlideshow
                         Score = score
                     });
                 }
-                if (candidatePhotos.Count != 0)
-                {
-                    break;
-                }
+                //if (candidatePhotos.Count != 0)
+                //{
+                //    break;
+                //}
 
             }
 
             if (candidatePhotos.Count == 0)
             {
-                return unselectedPhotos.Where(p => p.Id != firstVerticalPhoto.Id).OrderBy(photo => photo.NumberOfTags).First();
+                return searchSpacePhotos.Where(p => p.Id != firstVerticalPhoto.Id).OrderBy(photo => photo.NumberOfTags).First();
             }
 
             return CandidateSelectionProcess(candidatePhotos).Photo;

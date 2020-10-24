@@ -1,4 +1,5 @@
 ﻿using PhotoSlideshow;
+using PhotoSlideshow.Configuration;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
@@ -204,23 +205,6 @@ namespace PhotoSlideshow.Operators
                 }
             }
 
-            //// FIRST SWAP
-            //var firstPhotoSwap = SwapPhotos(Common.CopySlide(firstSlide), Common.CopySlide(secondSlide), 0, 0);
-            //slideshow.Slides[firstSlideIndexInSlideshow] = firstPhotoSwap[0];
-            //slideshow.Slides[secondSlideIndexInSlideshow] = firstPhotoSwap[1];
-
-            //var firstfirstPhotoSwapScore = Common.CalculateSlideScore(slideshow, firstSlideIndexInSlideshow);
-            //var firstSecondPhotoSwapScore = Common.CalculateSlideScore(slideshow, secondSlideIndexInSlideshow, omittedSlide);
-            //var postFirstSwap = firstfirstPhotoSwapScore + firstSecondPhotoSwapScore;
-
-            //// SECOND SWAP
-            //var secondPhotoSwap = SwapPhotos(Common.CopySlide(firstSlide), Common.CopySlide(secondSlide), 0, 1);
-            //slideshow.Slides[firstSlideIndexInSlideshow] = secondPhotoSwap[0];
-            //slideshow.Slides[secondSlideIndexInSlideshow] = secondPhotoSwap[1];
-            //var secondfirstPhotoSwapScore = Common.CalculateSlideScore(slideshow, firstSlideIndexInSlideshow);
-            //var secondSecondPhotoSwapScore = Common.CalculateSlideScore(slideshow, secondSlideIndexInSlideshow, omittedSlide);
-            //var postSecondSwap = secondfirstPhotoSwapScore + secondSecondPhotoSwapScore;
-
             var filteredMoves = verticalPhotoSwaps.Where(x => x.Gain >= preSwapScore);
             VerticalPhotoSwap bestVerticalSwapMove = null;
 
@@ -238,10 +222,9 @@ namespace PhotoSlideshow.Operators
             }
 
 
-            if (verticalSwapStopwatch.ElapsedMilliseconds > 25000)
+            if (verticalSwapStopwatch.ElapsedMilliseconds > ConfigurationConsts.AcceptBadSolutionAfterMillis && stopwatch.ElapsedMilliseconds > 7500)
             {
                 var lowestNegativeScore = verticalPhotoSwaps.OrderBy(x => x.Gain).First();
-                verticalSwapStopwatch.Restart();
                 return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = lowestNegativeScore.Gain - preSwapScore };
             }
             else
