@@ -57,19 +57,19 @@ namespace PhotoSlideshow
         /// <param name="percentageOfCandidatePhotos"></param>
         /// <param name="totalPhotos"></param>
         /// <returns></returns>
-        public static int CalculatePhotosToConsider(double percentageOfCandidatePhotos, int totalPhotos)
+        public static int CalculatePhotosToConsider(double percentageOfCandidatePhotos, int totalPhotos, bool fastSearch = false)
         {
             if (totalPhotos <= 100)
             {
                 return totalPhotos;
             }
 
-            int photosToConsider = (int)Math.Floor(percentageOfCandidatePhotos * totalPhotos / 100);
+            if (fastSearch)
+            {
+                return 100;
+            }
 
-            //if(photosToConsider < 100)
-            //{
-            //    return 100;
-            //}
+            int photosToConsider = (int)Math.Floor(percentageOfCandidatePhotos * totalPhotos / 100);
 
             return photosToConsider == 0 ? 1 : photosToConsider;
         }
