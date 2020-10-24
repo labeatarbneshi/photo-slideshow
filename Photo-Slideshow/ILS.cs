@@ -16,8 +16,8 @@ namespace PhotoSlideshow
         private readonly List<Slide> verticalSlides;
         private readonly int initialScore;
         private readonly Random random = new Random();
-        private Stopwatch stopwatch;
         private Stopwatch timeWithoutProgress;
+        private Stopwatch executionTime;
         private Stopwatch verticalSwapStopwatch;
         public ILS(Slideshow slideshow)
         {
@@ -31,10 +31,12 @@ namespace PhotoSlideshow
         /// </summary>
         public void Optimize()
         {
-            stopwatch = Stopwatch.StartNew();
             timeWithoutProgress = Stopwatch.StartNew();
+            executionTime = Stopwatch.StartNew();
             verticalSwapStopwatch = Stopwatch.StartNew();
+
             var score = initialScore;
+            var highestScore = initialScore;
             do
             {
                 var randomOperator = random.Next(1, 11);
@@ -45,34 +47,36 @@ namespace PhotoSlideshow
                     gainFromOperator = Swap.SwapSlides(slideshow);
                 }
 
-                else if (randomOperator > ConfigurationConsts.SlideSwapUpperFrequency && randomOperator <= 7)
+                else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
                 {
-                    var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, stopwatch, verticalSwapStopwatch);
+                    var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, timeWithoutProgress, verticalSwapStopwatch);
                     gainFromOperator = verticalSwap.Score;
 
                     if (verticalSwap.Score < 0)
                     {
-                        var hardSwapWithFirstIndex = Swap.HardSwap(slideshow, verticalSwap.FirstIndex, 30);
+                        var hardSwapWithFirstIndex = Swap.HardSwap(slideshow, verticalSwap.FirstIndex, ConfigurationConsts.RetriesAfterBadVerticalSwap);
                         gainFromOperator += hardSwapWithFirstIndex;
 
-                        var hardSwapWithSecondIndex = Swap.HardSwap(slideshow, verticalSwap.SecondIndex, 30);
+                        var hardSwapWithSecondIndex = Swap.HardSwap(slideshow, verticalSwap.SecondIndex, ConfigurationConsts.RetriesAfterBadVerticalSwap);
                         gainFromOperator += hardSwapWithSecondIndex;
+                        verticalSwapStopwatch.Restart();
                     }
                 }
 
-                else if (randomOperator > 7)
+                else if (randomOperator > ConfigurationConsts.ShuffleOperatorFrequency)
                 {
-                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 12));
+                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 10));
                 }
 
                 score += gainFromOperator;
-                if (gainFromOperator > 0)
+                if (gainFromOperator > 0 && score > highestScore)
                 {
-                    stopwatch.Restart();
-                    Console.WriteLine("NEW SCORE: " + Common.EvaluateSolution(slideshow.Slides));
+                    highestScore = score;
+                    timeWithoutProgress.Restart();
+                    Console.WriteLine("NEW SCORE: " + score);
                 }
             }
-            while (timeWithoutProgress.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
+            while (executionTime.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
 
             using (StreamWriter w = File.AppendText("c.txt"))
             {

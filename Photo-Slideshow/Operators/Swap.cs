@@ -221,10 +221,11 @@ namespace PhotoSlideshow.Operators
                 return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = bestVerticalSwapMove.Gain - preSwapScore };
             }
 
-
-            if (verticalSwapStopwatch.ElapsedMilliseconds > ConfigurationConsts.AcceptBadSolutionAfterMillis && stopwatch.ElapsedMilliseconds > 7500)
+            if (verticalSwapStopwatch.ElapsedMilliseconds > ConfigurationConsts.AcceptBadSolutionAfterMillis)
             {
                 var lowestNegativeScore = verticalPhotoSwaps.OrderBy(x => x.Gain).First();
+                slideshow.Slides[firstSlideIndexInSlideshow] = lowestNegativeScore.Slides[0];
+                slideshow.Slides[secondSlideIndexInSlideshow] = lowestNegativeScore.Slides[1];
                 return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = lowestNegativeScore.Gain - preSwapScore };
             }
             else
@@ -267,6 +268,21 @@ namespace PhotoSlideshow.Operators
             var secondSwapScore = Common.CalculateSlideScore(slideshow, secondIndex, omittedSlide);
 
             return new VerticalPhotoSwap(swappedSlidePhotos, firstSwapScore + secondSwapScore);
+        }
+
+        public static void HardSwapVerticalSlides(List<VerticalPhotoSwap> verticalPhotoSwaps, int firstIndex, int secondIndex, Slideshow slideshow)
+        {
+            List<VerticalPhotoSwap> photoSwaps = new List<VerticalPhotoSwap>();
+            foreach(VerticalPhotoSwap swap in verticalPhotoSwaps)
+            {
+                slideshow.Slides[firstIndex] = swap.Slides[0];
+                slideshow.Slides[secondIndex] = swap.Slides[1];
+
+                var result = 0;
+                result += HardSwap(slideshow, firstIndex, 10);
+                result += HardSwap(slideshow, secondIndex, 10);
+                photoSwaps.Add(new VerticalPhotoSwap(swap.Slides, result));
+            }
         }
 
 #endregion

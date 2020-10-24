@@ -10,6 +10,12 @@ namespace PhotoSlideshow.Configuration
     {
         public static long RunDuration = 1800000;
         public static int SlideSwapUpperFrequency = 4;
-        public static int AcceptBadSolutionAfterMillis = 15000;
+        public static int VerticalPhotoSwapFrequencyLowerLimit = SlideSwapUpperFrequency;
+        public static int VerticalPhotoSwapFrequencyUpperLimit = 7;
+        public static int ShuffleOperatorFrequency = VerticalPhotoSwapFrequencyUpperLimit;
+        public static int AcceptBadSolutionAfterMillis = 5000;
+        public static int RetriesAfterBadVerticalSwap = 15;
+        public static bool SkipVerticalSwap = false;
+        public static int AcceptWorseSolutionAfterNoProgressMillis = 0;
     }
 }
