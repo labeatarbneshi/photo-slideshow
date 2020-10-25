@@ -19,6 +19,7 @@ namespace PhotoSlideshow
         private Stopwatch timeWithoutProgress;
         private Stopwatch executionTime;
         private Stopwatch verticalSwapStopwatch;
+        private Stopwatch horizontalStopwatch;
         public ILS(Slideshow slideshow)
         {
             this.slideshow = slideshow;
@@ -34,6 +35,7 @@ namespace PhotoSlideshow
             timeWithoutProgress = Stopwatch.StartNew();
             executionTime = Stopwatch.StartNew();
             verticalSwapStopwatch = Stopwatch.StartNew();
+            horizontalStopwatch = Stopwatch.StartNew();
 
             var score = initialScore;
             var highestScore = initialScore;
@@ -44,7 +46,7 @@ namespace PhotoSlideshow
                 var gainFromOperator = 0;
                 if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
                 {
-                    gainFromOperator = Swap.SwapSlides(slideshow);
+                    gainFromOperator = Swap.SwapSlides(slideshow, horizontalStopwatch);
                 }
 
                 else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
@@ -65,13 +67,13 @@ namespace PhotoSlideshow
 
                 else if (randomOperator > ConfigurationConsts.ShuffleOperatorFrequency)
                 {
-                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 10));
+                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 8));
                 }
 
                 score += gainFromOperator;
-                if (gainFromOperator > 0 && score > highestScore)
+                if (gainFromOperator > 0)
                 {
-                    highestScore = score;
+                    //highestScore = score;
                     timeWithoutProgress.Restart();
                     Console.WriteLine("NEW SCORE: " + score);
                 }

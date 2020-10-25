@@ -3,6 +3,7 @@ using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PhotoSlideshow
 {
@@ -27,60 +28,34 @@ namespace PhotoSlideshow
             List<Photo> collectionPhotos = new List<Photo>(Collection.Photos);
             List<Slide> slides = new List<Slide>();
 
+            var a = Common.SplitList(Collection.Photos, 10000).ToArray();
+
+
+            var task1 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[0]));
+            var task2 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[1]));
+            var task3 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[2]));
+            var task4 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[3]));
+            var task5 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[4]));
+            var task6 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[5]));
+            var task7 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[6]));
+            var task8 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[7]));
+
+
+            Task.WaitAll(task1, task2, task3, task4, task5, task6, task7, task8);
+            Console.WriteLine("All threads complete");
+
+            slides.AddRange(task1.Result);
+            slides.AddRange(task2.Result);
+            slides.AddRange(task3.Result);
+            slides.AddRange(task4.Result);
+            slides.AddRange(task5.Result);
+            slides.AddRange(task6.Result);
+            slides.AddRange(task7.Result);
+            slides.AddRange(task8.Result);
+
 
             //Find a random horizontal photo that will be in the first slide of slideshow
             //HANDLE WHEN THERE IS NO HORIZONTAL PHOTO
-            var currentPhoto = HorizontalPhotos[random.Next(0, HorizontalPhotos.Count)];
-            var currentSlide = new Slide()
-            {
-                Id = currentPhoto.Id,
-                Photos = new List<Photo>()
-                {
-                    currentPhoto
-                }
-            };
-            slides.Add(currentSlide);
-            collectionPhotos.Remove(currentPhoto);
-
-            while (collectionPhotos.Count > 0)
-            {
-                List<Photo> nextSlidePhotos = FindNextSlide(currentSlide, collectionPhotos);
-                if (nextSlidePhotos != null)
-                {
-                    currentSlide = new Slide() { Id = nextSlidePhotos[0].Id, Photos = nextSlidePhotos };
-                    slides.Add(currentSlide);
-
-                    foreach (var photo in nextSlidePhotos)
-                    {
-                        collectionPhotos.Remove(photo);
-                    }
-                }
-                else
-                {
-                    List<Photo> randomPhotos = new List<Photo>();
-                    //Attempt to find a photo which orentiation is HORIZONTAL
-                    var horizontalPhotos = collectionPhotos.FindAll(photo => photo.Orientation == Orientation.HORIZONTAL);
-                    if(horizontalPhotos.Count > 0)
-                    {
-                        randomPhotos.Add(horizontalPhotos.First());
-                    } else
-                    {
-                        //If there is no HORIZONTAL photo left in our collection we must find two vertical photo to consist a slide
-                        randomPhotos = collectionPhotos.FindAll(p => p.Orientation == Orientation.VERTICAL).Take(2).ToList();
-                    }
-
-                    currentSlide = new Slide()
-                    {
-                        Id = randomPhotos[0].Id,
-                        Photos = randomPhotos
-                    };
-                    slides.Add(currentSlide);
-                    foreach (var photo in randomPhotos)
-                    {
-                        collectionPhotos.Remove(photo);
-                    }
-                }
-            }
 
             int score = Common.EvaluateSolution(slides);
 
@@ -115,35 +90,44 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            int slidingWindow = Common.CalculatePhotosToConsider(0, unselectedPhotos.Count);
+            int slidingWindow = Common.CalculatePhotosToConsider(10, unselectedPhotos.Count);
 
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
 
-            int startIndex = random.Next(0, unselectedPhotos.Count);
-            List<Photo> searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
+            int noOfIterations = 5;
 
-            foreach (var photo in searchSpacePhotos)
+            if (unselectedPhotos.Count < slidingWindow * 2)
             {
-                if (photo.Orientation == Orientation.HORIZONTAL)
-                {
-                    currentSlide.ComparedPhotos.Add(photo);
-                }
-                int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags);
+                noOfIterations = 1;
+            }
 
-                if (score > 0)
+            for (int i = 1; i <= noOfIterations; i++)
+            {
+                int startIndex = random.Next(0, unselectedPhotos.Count);
+                List<Photo> searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
+                foreach (var photo in searchSpacePhotos)
                 {
-                    candidatePhotos.Add(new CandidatePhoto()
+                    if (photo.Orientation == Orientation.HORIZONTAL)
                     {
-                        Id = photo.Id,
-                        Photo = photo,
-                        Score = score
-                    });
-                }
+                        currentSlide.ComparedPhotos.Add(photo);
+                    }
+                    int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags);
 
-                //if (candidatePhotos.Count != 0)
-                //{
-                //    break;
-                //}
+                    if (score > 0)
+                    {
+                        candidatePhotos.Add(new CandidatePhoto()
+                        {
+                            Id = photo.Id,
+                            Photo = photo,
+                            Score = score
+                        });
+                    }
+
+                    if (candidatePhotos.Count != 0)
+                    {
+                        break;
+                    }
+                }
             }
 
 
@@ -179,9 +163,9 @@ namespace PhotoSlideshow
         /// <returns></returns>
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 1;
+            const int searchSpacePercentage = 50;
 
-            int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count, true);
+            int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
 
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
 
@@ -254,6 +238,68 @@ namespace PhotoSlideshow
             int score = slideshow.Score;
 
             return new Slideshow(slides, score);
+        }
+
+
+        private List<Slide> FindSolutionForPartialInstance(List<Photo> photos)
+        {
+            List<Photo> collectionPhotos = photos;
+            List<Slide> slides = new List<Slide>();
+            // WAS HORIZONTAL PHOTOS
+            var currentPhoto = photos[random.Next(0, photos.Count)];
+            var currentSlide = new Slide()
+            {
+                Id = currentPhoto.Id,
+                Photos = new List<Photo>()
+                {
+                    currentPhoto
+                }
+            };
+            slides.Add(currentSlide);
+            collectionPhotos.Remove(currentPhoto);
+
+            while (collectionPhotos.Count > 0)
+            {
+                List<Photo> nextSlidePhotos = FindNextSlide(currentSlide, collectionPhotos);
+                if (nextSlidePhotos != null)
+                {
+                    currentSlide = new Slide() { Id = nextSlidePhotos[0].Id, Photos = nextSlidePhotos };
+                    slides.Add(currentSlide);
+
+                    foreach (var photo in nextSlidePhotos)
+                    {
+                        collectionPhotos.Remove(photo);
+                    }
+                }
+                else
+                {
+                    List<Photo> randomPhotos = new List<Photo>();
+                    //Attempt to find a photo which orentiation is HORIZONTAL
+                    var horizontalPhotos = collectionPhotos.FindAll(photo => photo.Orientation == Orientation.HORIZONTAL);
+                    if (horizontalPhotos.Count > 0)
+                    {
+                        randomPhotos.Add(horizontalPhotos.First());
+                    }
+                    else
+                    {
+                        //If there is no HORIZONTAL photo left in our collection we must find two vertical photo to consist a slide
+                        randomPhotos = collectionPhotos.FindAll(p => p.Orientation == Orientation.VERTICAL).Take(2).ToList();
+                    }
+
+                    currentSlide = new Slide()
+                    {
+                        Id = randomPhotos[0].Id,
+                        Photos = randomPhotos
+                    };
+                    slides.Add(currentSlide);
+                    foreach (var photo in randomPhotos)
+                    {
+                        collectionPhotos.Remove(photo);
+                    }
+                }
+            }
+
+            return slides;
         }
     }
 }

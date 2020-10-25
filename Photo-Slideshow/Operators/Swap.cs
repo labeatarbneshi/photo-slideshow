@@ -17,30 +17,28 @@ namespace PhotoSlideshow.Operators
         /// Swap two randomly selected slides
         /// </summary>
         /// <returns>Result achiveed by swap</returns>
-        public static int SwapSlides(Slideshow slideshow)
+        public static int SwapSlides(Slideshow slideshow, Stopwatch timeWithoutProgress)
         {
             var firstSlideIndex = randomNoGenerator.Next(0, slideshow.Slides.Count);
             var firstSlide = slideshow.Slides[firstSlideIndex];
 
             Slide secondSlide;
             int secondSlideIndex;
-            bool repeat;
             do
             {
-                repeat = false;
                 secondSlideIndex = randomNoGenerator.Next(0, slideshow.Slides.Count);
                 secondSlide = slideshow.Slides[secondSlideIndex];
-                if (secondSlide.Photos.Count == 1)
-                {
-                    if (firstSlide.ComparedPhotos.Contains(secondSlide.Photos[0]))
-                    {
-                        repeat = true;
-                    }
-                }
-            } while (firstSlideIndex == secondSlideIndex || repeat);
+                //if (secondSlide.Photos.Count == 1)
+                //{
+                //    if (firstSlide.ComparedPhotos.Contains(secondSlide.Photos[0]))
+                //    {
+                //        repeat = true;
+                //    }
+                //}
+            } while (firstSlideIndex == secondSlideIndex);
 
-            firstSlide.ComparedPhotos.Add(secondSlide.Photos[0]);
-            secondSlide.ComparedPhotos.Add(firstSlide.Photos[0]);
+            //firstSlide.ComparedPhotos.Add(secondSlide.Photos[0]);
+            //secondSlide.ComparedPhotos.Add(firstSlide.Photos[0]);
 
             var omittedSlide = -1;
             if (secondSlideIndex - 1 == firstSlideIndex)
@@ -63,8 +61,9 @@ namespace PhotoSlideshow.Operators
             var postSwapSecondSlideScore = Common.CalculateSlideScore(slideshow, secondSlideIndex, omittedSlide);
             var postSwapScore = postSwapFirstSlideScore + postSwapSecondSlideScore;
 
-            if (postSwapScore >= preSwapScore)
+            if (postSwapScore >= preSwapScore || timeWithoutProgress.ElapsedMilliseconds > 5000)
             {
+                timeWithoutProgress.Restart();
                 return postSwapScore - preSwapScore;
 
             }

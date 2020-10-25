@@ -141,5 +141,13 @@ namespace PhotoSlideshow
 
             return new Slide() { Id = slide.Id, Photos = photos };
         }
+
+        public static IEnumerable<List<T>> SplitList<T>(List<T> photos, int nSize = 1000)
+        {
+            for (int i = 0; i < photos.Count; i += nSize)
+            {
+                yield return photos.GetRange(i, Math.Min(nSize, photos.Count - i));
+            }
+        }
     }
 }
