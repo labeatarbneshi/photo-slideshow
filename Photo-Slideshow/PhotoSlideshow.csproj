@@ -48,11 +48,9 @@
     <Compile Include="ILS.cs" />
     <Compile Include="Models\CandidatePhoto.cs" />
     <Compile Include="Models\Collection.cs" />
-    <Compile Include="Models\HardSwap.cs" />
     <Compile Include="Models\Photo.cs" />
     <Compile Include="Models\Slide.cs" />
     <Compile Include="Models\Slideshow.cs" />
-    <Compile Include="Models\VerticalHardSwap.cs" />
     <Compile Include="Models\VerticalPhotoSwap.cs" />
     <Compile Include="Models\VerticalSwap.cs" />
     <Compile Include="Operators\Shuffle.cs" />
