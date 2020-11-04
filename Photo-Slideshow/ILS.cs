@@ -18,8 +18,7 @@ namespace PhotoSlideshow
         private readonly Random random = new Random();
         private Stopwatch timeWithoutProgress;
         private Stopwatch executionTime;
-        private Stopwatch verticalSwapStopwatch;
-        private Stopwatch horizontalStopwatch;
+        private Stopwatch acceptWorseSolution;
         public ILS(Slideshow slideshow)
         {
             this.slideshow = slideshow;
@@ -34,8 +33,8 @@ namespace PhotoSlideshow
         {
             timeWithoutProgress = Stopwatch.StartNew();
             executionTime = Stopwatch.StartNew();
-            verticalSwapStopwatch = Stopwatch.StartNew();
-            horizontalStopwatch = Stopwatch.StartNew();
+            acceptWorseSolution = Stopwatch.StartNew();
+            bool paramsChanged = false;
 
             var score = initialScore;
             var highestScore = initialScore;
@@ -46,57 +45,69 @@ namespace PhotoSlideshow
                 var gainFromOperator = 0;
                 if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
                 {
-                    gainFromOperator = Swap.SwapSlides(slideshow, horizontalStopwatch);
+                    gainFromOperator = Swap.SwapSlides(slideshow, acceptWorseSolution, timeWithoutProgress);
                 }
 
                 else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
                 {
-                    var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, timeWithoutProgress, verticalSwapStopwatch);
+                    var verticalSwap = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, acceptWorseSolution, timeWithoutProgress);
                     gainFromOperator = verticalSwap.Score;
 
-                    if (verticalSwap.Score < 0)
-                    {
-                        var hardSwapWithFirstIndex = Swap.HardSwap(slideshow, verticalSwap.FirstIndex, ConfigurationConsts.RetriesAfterBadVerticalSwap);
-                        gainFromOperator += hardSwapWithFirstIndex;
 
-                        var hardSwapWithSecondIndex = Swap.HardSwap(slideshow, verticalSwap.SecondIndex, ConfigurationConsts.RetriesAfterBadVerticalSwap);
-                        gainFromOperator += hardSwapWithSecondIndex;
-                        verticalSwapStopwatch.Restart();
-                    }
+                    //if (verticalSwap.Score < 0)
+                    //{
+                    //    var hardSwapWithFirstIndex = Swap.HardSwap(slideshow, verticalSwap.FirstIndex, ConfigurationConsts.RetriesAfterBadVerticalSwap);
+                    //    gainFromOperator += hardSwapWithFirstIndex;
+
+                    //    var hardSwapWithSecondIndex = Swap.HardSwap(slideshow, verticalSwap.SecondIndex, ConfigurationConsts.RetriesAfterBadVerticalSwap);
+                    //    gainFromOperator += hardSwapWithSecondIndex;
+
+                    //    if (hardSwapWithFirstIndex + hardSwapWithSecondIndex > 0)
+                    //    {
+                    //        timeWithoutProgress.Restart();
+                    //    }
+                    //    acceptWorseSolution.Restart();
+                    //}
                 }
 
                 else if (randomOperator > ConfigurationConsts.ShuffleOperatorFrequency)
                 {
                     gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 8));
                 }
+                    
+                if(gainFromOperator < 0)
+                {
+                    acceptWorseSolution.Restart();
+                }
 
                 score += gainFromOperator;
                 if (gainFromOperator > 0)
                 {
-                    //highestScore = score;
+                    highestScore = score;
                     timeWithoutProgress.Restart();
                     Console.WriteLine("NEW SCORE: " + score);
                 }
+
+                //if (executionTime.ElapsedMilliseconds > 150000 && !paramsChanged)
+                //{
+                //    paramsChanged = true;
+                //    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 3000;
+                //    ConfigurationConsts.RetriesAfterBadVerticalSwap = 20;
+                //    ConfigurationConsts.AcceptWorseSolutionAfterMillis = 5000;
+                //}
+
+                //if (executionTime.ElapsedMilliseconds > 300000)
+                //{
+                //    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 7000;
+                //    ConfigurationConsts.RetriesAfterBadVerticalSwap = 25;
+                //    ConfigurationConsts.SlideSwapUpperFrequency = 5;
+                //    ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit = 5;
+                //    ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit = 10;
+                //}
             }
             while (executionTime.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
 
-            using (StreamWriter w = File.AppendText("c.txt"))
-            {
-                Console.WriteLine("FINISHED WITH SCORE" + score);
-                w.WriteLine(slideshow.Slides.Count);
-                foreach (var s in slideshow.Slides)
-                {
-                    if(s.Photos.Count > 1)
-                    {
-                        int a = s.Photos[0].Id - 2;
-                        int b = s.Photos[1].Id - 2;
-                        w.WriteLine(a + " " + b);
-                    } else
-                    {
-                        w.WriteLine(s.Photos[0].Id - 2);
-                    }
-                }
-            }
+            Common.SaveSolution(slideshow, "final_solution");
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace PhotoSlideshow
@@ -147,6 +148,28 @@ namespace PhotoSlideshow
             for (int i = 0; i < photos.Count; i += nSize)
             {
                 yield return photos.GetRange(i, Math.Min(nSize, photos.Count - i));
+            }
+        }
+
+        public static void SaveSolution(Slideshow slideshow, string name)
+        {
+            using (StreamWriter w = File.AppendText($"{name}.txt"))
+            {
+                Console.WriteLine("FINISHED WITH SCORE: " + Common.EvaluateSolution(slideshow.Slides));
+                w.WriteLine(slideshow.Slides.Count);
+                foreach (var s in slideshow.Slides)
+                {
+                    if (s.Photos.Count > 1)
+                    {
+                        int a = s.Photos[0].Id - 2;
+                        int b = s.Photos[1].Id - 2;
+                        w.WriteLine(a + " " + b);
+                    }
+                    else
+                    {
+                        w.WriteLine(s.Photos[0].Id - 2);
+                    }
+                }
             }
         }
     }

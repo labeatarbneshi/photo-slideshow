@@ -7,7 +7,7 @@ namespace PhotoSlideshow.Models
     {
         public int Id { get; set; }
         public List<Photo> Photos { get; set; }
-        public List<Photo> ComparedPhotos { get; set; } = new List<Photo>();
+        public List<int> BadNeighbours { get; set; } = new List<int>();
         public List<string> GetTags()
         {
             if(Photos.Count == 2)

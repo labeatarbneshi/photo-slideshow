@@ -28,30 +28,21 @@ namespace PhotoSlideshow
             List<Photo> collectionPhotos = new List<Photo>(Collection.Photos);
             List<Slide> slides = new List<Slide>();
 
-            var a = Common.SplitList(Collection.Photos, 10000).ToArray();
+            var splittedInstance = Common.SplitList(Collection.Photos, 20000).ToArray();
+
+            var taskList = new List<Task<List<Slide>>>();
+            foreach(var item in splittedInstance)
+            {
+                taskList.Add(Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(item)));
+            }
 
 
-            var task1 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[0]));
-            var task2 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[1]));
-            var task3 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[2]));
-            var task4 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[3]));
-            var task5 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[4]));
-            var task6 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[5]));
-            var task7 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[6]));
-            var task8 = Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(a[7]));
+            Task.WaitAll(taskList.ToArray());
 
-
-            Task.WaitAll(task1, task2, task3, task4, task5, task6, task7, task8);
-            Console.WriteLine("All threads complete");
-
-            slides.AddRange(task1.Result);
-            slides.AddRange(task2.Result);
-            slides.AddRange(task3.Result);
-            slides.AddRange(task4.Result);
-            slides.AddRange(task5.Result);
-            slides.AddRange(task6.Result);
-            slides.AddRange(task7.Result);
-            slides.AddRange(task8.Result);
+            foreach(var task in taskList)
+            {
+                slides.AddRange(task.Result);
+            }
 
 
             //Find a random horizontal photo that will be in the first slide of slideshow
@@ -90,45 +81,31 @@ namespace PhotoSlideshow
 
         private List<Photo> FindNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
-            int slidingWindow = Common.CalculatePhotosToConsider(10, unselectedPhotos.Count);
+            int slidingWindow = Common.CalculatePhotosToConsider(1, unselectedPhotos.Count);
 
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
 
-            int noOfIterations = 5;
-
-            if (unselectedPhotos.Count < slidingWindow * 2)
+            int startIndex = random.Next(0, unselectedPhotos.Count);
+            List<Photo> searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
+            foreach (var photo in searchSpacePhotos)
             {
-                noOfIterations = 1;
-            }
-
-            for (int i = 1; i <= noOfIterations; i++)
-            {
-                int startIndex = random.Next(0, unselectedPhotos.Count);
-                List<Photo> searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
-                foreach (var photo in searchSpacePhotos)
+                int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags);
+                if (photo.Orientation == Orientation.HORIZONTAL && score == 0)
                 {
-                    if (photo.Orientation == Orientation.HORIZONTAL)
-                    {
-                        currentSlide.ComparedPhotos.Add(photo);
-                    }
-                    int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags);
+                    currentSlide.BadNeighbours.Add(photo.Id);
+                }
 
-                    if (score > 0)
+                if (score > 0)
+                {
+                    candidatePhotos.Add(new CandidatePhoto()
                     {
-                        candidatePhotos.Add(new CandidatePhoto()
-                        {
-                            Id = photo.Id,
-                            Photo = photo,
-                            Score = score
-                        });
-                    }
-
-                    if (candidatePhotos.Count != 0)
-                    {
-                        break;
-                    }
+                        Id = photo.Id,
+                        Photo = photo,
+                        Score = score
+                    });
                 }
             }
+
 
 
             if (candidatePhotos.Count == 0)
@@ -163,7 +140,7 @@ namespace PhotoSlideshow
         /// <returns></returns>
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 50;
+            const int searchSpacePercentage = 10;
 
             int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
 
@@ -186,11 +163,6 @@ namespace PhotoSlideshow
                         Score = score
                     });
                 }
-                //if (candidatePhotos.Count != 0)
-                //{
-                //    break;
-                //}
-
             }
 
             if (candidatePhotos.Count == 0)

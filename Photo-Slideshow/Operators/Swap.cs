@@ -17,28 +17,29 @@ namespace PhotoSlideshow.Operators
         /// Swap two randomly selected slides
         /// </summary>
         /// <returns>Result achiveed by swap</returns>
-        public static int SwapSlides(Slideshow slideshow, Stopwatch timeWithoutProgress)
+        public static int SwapSlides(Slideshow slideshow, Stopwatch acceptWorseSolution, Stopwatch timeWithoutProgress)
         {
             var firstSlideIndex = randomNoGenerator.Next(0, slideshow.Slides.Count);
-            var firstSlide = slideshow.Slides[firstSlideIndex];
-
-            Slide secondSlide;
             int secondSlideIndex;
+            Slide firstSlide = slideshow.Slides[firstSlideIndex];
+            
+            bool bothHorizontal;
             do
             {
+                bothHorizontal = false;
                 secondSlideIndex = randomNoGenerator.Next(0, slideshow.Slides.Count);
-                secondSlide = slideshow.Slides[secondSlideIndex];
-                //if (secondSlide.Photos.Count == 1)
-                //{
-                //    if (firstSlide.ComparedPhotos.Contains(secondSlide.Photos[0]))
-                //    {
-                //        repeat = true;
-                //    }
-                //}
             } while (firstSlideIndex == secondSlideIndex);
 
-            //firstSlide.ComparedPhotos.Add(secondSlide.Photos[0]);
-            //secondSlide.ComparedPhotos.Add(firstSlide.Photos[0]);
+            Slide secondSlide = slideshow.Slides[secondSlideIndex];
+
+            if (firstSlide.Photos.Count == 1 && secondSlide.Photos.Count == 1)
+            {
+                bothHorizontal = true;
+                if (firstSlide.BadNeighbours.Contains(secondSlide.Photos[0].Id))
+                {
+                    return 0;
+                }
+            }
 
             var omittedSlide = -1;
             if (secondSlideIndex - 1 == firstSlideIndex)
@@ -61,9 +62,20 @@ namespace PhotoSlideshow.Operators
             var postSwapSecondSlideScore = Common.CalculateSlideScore(slideshow, secondSlideIndex, omittedSlide);
             var postSwapScore = postSwapFirstSlideScore + postSwapSecondSlideScore;
 
-            if (postSwapScore >= preSwapScore || timeWithoutProgress.ElapsedMilliseconds > 5000)
+            var gain = postSwapScore - preSwapScore;
+
+            if (bothHorizontal && gain < 0)
             {
-                timeWithoutProgress.Restart();
+                firstSlide.BadNeighbours.Add(secondSlide.Photos[0].Id);
+                secondSlide.BadNeighbours.Add(firstSlide.Photos[0].Id);
+            }
+
+            //||
+            //    (acceptWorseSolution.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis &&
+            //    timeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis)
+
+            if (postSwapScore >= preSwapScore)
+            {
                 return postSwapScore - preSwapScore;
 
             }
@@ -157,7 +169,7 @@ namespace PhotoSlideshow.Operators
         /// Randomly selects two slides with vertical photos and generates all slides from given photos by calculating score.
         /// </summary>
         /// <returns>The highest score from combination of photos</returns>
-        public static VerticalSwap SwapVerticalSlidePhotos(Slideshow slideshow, List<Slide> verticalSlides, Stopwatch stopwatch, Stopwatch verticalSwapStopwatch)
+        public static VerticalSwap SwapVerticalSlidePhotos(Slideshow slideshow, List<Slide> verticalSlides, Stopwatch acceptWorseSolution, Stopwatch timeWithoutProgress)
         {
             var firstSlideIndex = randomNoGenerator.Next(0, verticalSlides.Count);
 
@@ -220,7 +232,7 @@ namespace PhotoSlideshow.Operators
                 return new VerticalSwap() { FirstIndex = firstSlideIndexInSlideshow, SecondIndex = secondSlideIndexInSlideshow, Score = bestVerticalSwapMove.Gain - preSwapScore };
             }
 
-            if (verticalSwapStopwatch.ElapsedMilliseconds > ConfigurationConsts.AcceptBadSolutionAfterMillis)
+            if (timeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis)
             {
                 var lowestNegativeScore = verticalPhotoSwaps.OrderBy(x => x.Gain).First();
                 slideshow.Slides[firstSlideIndexInSlideshow] = lowestNegativeScore.Slides[0];
@@ -269,20 +281,22 @@ namespace PhotoSlideshow.Operators
             return new VerticalPhotoSwap(swappedSlidePhotos, firstSwapScore + secondSwapScore);
         }
 
-        public static void HardSwapVerticalSlides(List<VerticalPhotoSwap> verticalPhotoSwaps, int firstIndex, int secondIndex, Slideshow slideshow)
-        {
-            List<VerticalPhotoSwap> photoSwaps = new List<VerticalPhotoSwap>();
-            foreach(VerticalPhotoSwap swap in verticalPhotoSwaps)
-            {
-                slideshow.Slides[firstIndex] = swap.Slides[0];
-                slideshow.Slides[secondIndex] = swap.Slides[1];
+        //public static List<VerticalHardSwap> HardSwapVerticalSlides(List<VerticalPhotoSwap> verticalPhotoSwaps, int firstIndex, int secondIndex, Slideshow slideshow)
+        //{
+        //    List<VerticalHardSwap> verticalHardSwaps = new List<VerticalHardSwap>();
+        //    foreach(VerticalPhotoSwap swap in verticalPhotoSwaps)
+        //    {
+        //        slideshow.Slides[firstIndex] = swap.Slides[0];
+        //        slideshow.Slides[secondIndex] = swap.Slides[1];
 
-                var result = 0;
-                result += HardSwap(slideshow, firstIndex, 10);
-                result += HardSwap(slideshow, secondIndex, 10);
-                photoSwaps.Add(new VerticalPhotoSwap(swap.Slides, result));
-            }
-        }
+        //        var firstHardSwap = HardSwap(slideshow, firstIndex, 15);
+        //        var secondHardSwap = HardSwap(slideshow, secondIndex, 15);
+        //        verticalHardSwaps.Add(new VerticalHardSwap(swap, new List<HardSwap>() { firstHardSwap, secondHardSwap }, firstHardSwap.Gain + secondHardSwap.Gain));
+
+        //    }
+
+        //    return verticalHardSwaps;
+        //}
 
 #endregion
     }
