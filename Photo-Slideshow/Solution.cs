@@ -13,6 +13,8 @@ namespace PhotoSlideshow
         private List<Photo> HorizontalPhotos;
         private List<Photo> VerticalPhotos;
         private Slideshow Slideshow;
+        public static int MaxTagNoInVerticalPhoto = 0;
+        public static int MinTagNoInVerticalPhoto = 0;
 
         private readonly Random random = new Random();
         public Solution(Collection collection)
@@ -28,7 +30,7 @@ namespace PhotoSlideshow
             List<Photo> collectionPhotos = new List<Photo>(Collection.Photos);
             List<Slide> slides = new List<Slide>();
 
-            var splittedInstance = Common.SplitList(Collection.Photos, 20000).ToArray();
+            var splittedInstance = Common.SplitList(Collection.Photos, 30000).ToArray();
 
             var taskList = new List<Task<List<Slide>>>();
             foreach(var item in splittedInstance)
@@ -85,24 +87,27 @@ namespace PhotoSlideshow
 
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
 
-            int startIndex = random.Next(0, unselectedPhotos.Count);
-            List<Photo> searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
-            foreach (var photo in searchSpacePhotos)
+            for (int i = 0; i < 5; i++)
             {
-                int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags);
-                if (photo.Orientation == Orientation.HORIZONTAL && score == 0)
+                int startIndex = random.Next(0, unselectedPhotos.Count);
+                List<Photo> searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
+                foreach (var photo in searchSpacePhotos)
                 {
-                    currentSlide.BadNeighbours.Add(photo.Id);
-                }
-
-                if (score > 0)
-                {
-                    candidatePhotos.Add(new CandidatePhoto()
+                    int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags);
+                    if (photo.Orientation == Orientation.HORIZONTAL && score == 0)
                     {
-                        Id = photo.Id,
-                        Photo = photo,
-                        Score = score
-                    });
+                        currentSlide.BadNeighbours.Add(photo.Id);
+                    }
+
+                    if (score > 0)
+                    {
+                        candidatePhotos.Add(new CandidatePhoto()
+                        {
+                            Id = photo.Id,
+                            Photo = photo,
+                            Score = score
+                        });
+                    }
                 }
             }
 
@@ -140,28 +145,29 @@ namespace PhotoSlideshow
         /// <returns></returns>
         private Photo FindSecondVerticalPhotoForSlide(Slide currentSlide, Photo firstVerticalPhoto, List<Photo> unselectedPhotos, int initalScore)
         {
-            const int searchSpacePercentage = 10;
 
-            int slidingWindow = Common.CalculatePhotosToConsider(searchSpacePercentage, unselectedPhotos.Count);
+            int slidingWindow = Common.CalculatePhotosToConsider(1, unselectedPhotos.Count);
 
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
-
-
-            int startIndex = random.Next(0, unselectedPhotos.Count);
-            List<Photo> searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
-
-            foreach (var photo in searchSpacePhotos)
+            List<Photo> searchSpacePhotos = new List<Photo>();
+            for (int i = 0; i < 5; i++)
             {
-                int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags.Union(firstVerticalPhoto.Tags).ToList());
+                int startIndex = random.Next(0, unselectedPhotos.Count);
+                searchSpacePhotos = Common.GetSearchSpacePhotos(unselectedPhotos, slidingWindow, startIndex);
 
-                if (score > initalScore)
+                foreach (var photo in searchSpacePhotos)
                 {
-                    candidatePhotos.Add(new CandidatePhoto()
+                    int score = Common.EvaluateAdjacentSlides(currentSlide.GetTags(), photo.Tags.Union(firstVerticalPhoto.Tags).ToList());
+
+                    if (score > initalScore)
                     {
-                        Id = photo.Id,
-                        Photo = photo,
-                        Score = score
-                    });
+                        candidatePhotos.Add(new CandidatePhoto()
+                        {
+                            Id = photo.Id,
+                            Photo = photo,
+                            Score = score
+                        });
+                    }
                 }
             }
 
@@ -218,7 +224,7 @@ namespace PhotoSlideshow
             List<Photo> collectionPhotos = photos;
             List<Slide> slides = new List<Slide>();
             // WAS HORIZONTAL PHOTOS
-            var currentPhoto = photos[random.Next(0, photos.Count)];
+            var currentPhoto = photos.FirstOrDefault(x=>x.Orientation == Orientation.HORIZONTAL);
             var currentSlide = new Slide()
             {
                 Id = currentPhoto.Id,
