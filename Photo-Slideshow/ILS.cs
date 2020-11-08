@@ -1,12 +1,10 @@
-﻿using PhotoSlideshow.Operators;
+﻿using PhotoSlideshow.Configuration;
 using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using PhotoSlideshow.Configuration;
 
 namespace PhotoSlideshow
 {
@@ -31,57 +29,57 @@ namespace PhotoSlideshow
         /// </summary>
         public void Optimize()
         {
-            timeWithoutProgress = Stopwatch.StartNew();
-            executionTime = Stopwatch.StartNew();
-            acceptWorseSolution = Stopwatch.StartNew();
+            //timeWithoutProgress = Stopwatch.StartNew();
+            //executionTime = Stopwatch.StartNew();
+            //acceptWorseSolution = Stopwatch.StartNew();
 
-            var score = initialScore;
-            var highestScore = initialScore;
-            do
-            {
-                var randomOperator = random.Next(1, 11);
+            //var score = initialScore;
+            //var highestScore = initialScore;
+            //do
+            //{
+            //    var randomOperator = random.Next(1, 11);
 
-                var gainFromOperator = 0;
-                if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
-                {
-                    gainFromOperator = Swap.SwapSlides(slideshow, acceptWorseSolution, timeWithoutProgress);
-                }
+            //    var gainFromOperator = 0;
+            //    if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
+            //    {
+            //        gainFromOperator = Swap.SwapSlides(slideshow, acceptWorseSolution, timeWithoutProgress);
+            //    }
 
-                else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
-                {
-                    gainFromOperator = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, acceptWorseSolution, timeWithoutProgress);
-                }
+            //    else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
+            //    {
+            //        gainFromOperator = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, acceptWorseSolution, timeWithoutProgress);
+            //    }
 
-                else if (randomOperator > ConfigurationConsts.ShuffleOperatorFrequency)
-                {
-                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 8));
-                }
+            //    else if (randomOperator > ConfigurationConsts.ShuffleOperatorFrequency)
+            //    {
+            //        gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 8));
+            //    }
 
-                if (gainFromOperator < 0)
-                {
-                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis += 25;
-                    acceptWorseSolution.Restart();
-                    timeWithoutProgress.Restart();
-                }
+            //    if (gainFromOperator < 0)
+            //    {
+            //        ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis += 25;
+            //        acceptWorseSolution.Restart();
+            //        timeWithoutProgress.Restart();
+            //    }
 
-                if(ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis > 5000)
-                {
-                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 1200;
-                }
+            //    if(ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis > 5000)
+            //    {
+            //        ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 1200;
+            //    }
 
 
 
-                score += gainFromOperator;
-                if (gainFromOperator > 0)
-                {
-                    highestScore = score;
-                    timeWithoutProgress.Restart();
-                    Console.WriteLine("NEW SCORE: " + score);
-                }
-            }
-            while (executionTime.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
+            //    score += gainFromOperator;
+            //    if (gainFromOperator > 0)
+            //    {
+            //        highestScore = score;
+            //        timeWithoutProgress.Restart();
+            //        Console.WriteLine("NEW SCORE: " + score);
+            //    }
+            //}
+            //while (executionTime.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
 
-            Common.SaveSolution(slideshow, "final_solution");
+            //Solution.Save(slideshow, "final_solution");
         }
     }
 }
