@@ -18,7 +18,7 @@ namespace PhotoSlideshow
 
         static void ReadFile()
         {
-            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\d_pet_pictures.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
             var collectionPhotos = new List<Photo>();
             Console.WriteLine("Reading instance content...");
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
@@ -45,10 +45,13 @@ namespace PhotoSlideshow
             Collection.HorizontalPhotos = new List<Photo>(collectionPhotos.Where(photo => photo.Orientation == Orientation.HORIZONTAL).ToList());
             Collection.VerticalPhotos  = new List<Photo>(collectionPhotos.Where(photo => photo.Orientation == Orientation.HORIZONTAL).ToList());
 
-            Slideshow slideshow = Solution.Generate();
+            Solution solution = Solution.Generate();
 
-            Console.WriteLine($"[SOLUTION] Total generated slides: {slideshow.Slides.Count}");
-            Console.WriteLine($"{DateTime.Now} Initial solution score: {slideshow.Score}");
+            Console.WriteLine($"[SOLUTION] Total generated slides: {solution.Slideshow.Slides.Count}");
+            Console.WriteLine($"{DateTime.Now} Initial solution score: {solution.Score}");
+
+            //ILS ils = new ILS(slideshow);
+            //ils.Optimize();
         }
 
         static Photo ProcessLine(string line, int lineNo)
