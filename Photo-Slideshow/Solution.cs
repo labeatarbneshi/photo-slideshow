@@ -12,7 +12,7 @@ namespace PhotoSlideshow
     class Solution
     {
         public Guid Id { get; }
-        public Slideshow Slideshow{ get; set; }
+        public Slideshow Slideshow { get; set; }
         public List<Slide> VerticalSlides { get; set; }
         public int Score { get; set; }
 
@@ -50,7 +50,7 @@ namespace PhotoSlideshow
             int score = Evaluate(slides);
 
             solution.Slideshow = new Slideshow(slides, score);
-            solution.VerticalSlides = solution.Slideshow.Slides.Where(s => s.Photos.Any(p => p.Orientation == Orientation.VERTICAL)).ToList();
+            solution.VerticalSlides = new List<Slide>(solution.Slideshow.Slides.Where(s => s.Photos.Any(p => p.Orientation == Orientation.VERTICAL)).ToList());
             solution.Score = score;
 
             return solution;
@@ -133,11 +133,12 @@ namespace PhotoSlideshow
             List<CandidatePhoto> candidatePhotos = GetCandidatePhotos(currentSlide, unusedPhotos);
             List<Photo> chosenPhotos = new List<Photo>();
             CandidatePhoto candidate = null;
-            if(candidatePhotos.Count == 0)
+            if (candidatePhotos.Count == 0)
             {
                 var randomPhoto = unusedPhotos[random.Next(0, unusedPhotos.Count)];
                 candidate = new CandidatePhoto(randomPhoto.Id, randomPhoto, Slide.EvaluateAdjacent(currentSlide.GetTags(), randomPhoto.Tags));
-            } else
+            }
+            else
             {
                 candidate = CandidateSelectionProcess(candidatePhotos);
             }
@@ -169,18 +170,18 @@ namespace PhotoSlideshow
             var random = new Random();
             int slidingWindow = Common.CalculatePhotosToConsider(1, unusedPhotos.Count);
             int scoreToBeat = initialScore != -1 ? initialScore : 0;
-            List <CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
+            List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
             List<Photo> searchSpacePhotos = new List<Photo>();
             for (int i = 0; i < 5; i++)
             {
                 int startIndex = random.Next(0, unusedPhotos.Count);
-                searchSpacePhotos = firstSlidePhoto != null ? 
+                searchSpacePhotos = firstSlidePhoto != null ?
                     Common.GetSearchSpacePhotos(unusedPhotos, slidingWindow, startIndex).FindAll(p => p.Id != firstSlidePhoto.Id) :
                     Common.GetSearchSpacePhotos(unusedPhotos, slidingWindow, startIndex); ;
                 foreach (var photo in searchSpacePhotos)
                 {
-                    int score = firstSlidePhoto != null ? 
-                        Slide.EvaluateAdjacent(currentSlide.GetTags(), photo.Tags.Union(firstSlidePhoto.Tags).ToList()) : 
+                    int score = firstSlidePhoto != null ?
+                        Slide.EvaluateAdjacent(currentSlide.GetTags(), photo.Tags.Union(firstSlidePhoto.Tags).ToList()) :
                         Slide.EvaluateAdjacent(currentSlide.GetTags(), photo.Tags);
 
                     if (photo.Orientation == Orientation.HORIZONTAL && score == 0)
@@ -214,7 +215,7 @@ namespace PhotoSlideshow
             // If there is more than one candidate then return the one with minimum number of tags
             List<CandidatePhoto> candidates = candidatePhotos.FindAll(photo => photo.Score == maxScore);
 
-            if(candidates.Count == 1)
+            if (candidates.Count == 1)
             {
                 return candidates.First();
             }
@@ -229,11 +230,12 @@ namespace PhotoSlideshow
         /// </summary>
         /// <param name="slideshow"></param>
         /// <returns></returns>
-        private Solution Copy()
+        public Solution Copy()
         {
             var solution = new Solution
             {
-                Slideshow = Slideshow,
+                Slideshow = new Slideshow(new List<Slide>(Slideshow.Slides), Score),
+                VerticalSlides = new List<Slide>(VerticalSlides),
                 Score = Score
             };
 
@@ -380,7 +382,7 @@ namespace PhotoSlideshow
             return score;
         }
 
-         /// <summary>
+        /// <summary>
         /// Randomly selects two slides with vertical photos and generates all slides from given photos by calculating score.
         /// </summary>
         /// <returns>The highest score from combination of photos</returns>
@@ -421,9 +423,9 @@ namespace PhotoSlideshow
             var preSwapScore = preSwapFirstSlideScore + preSwapSecondSlideScore;
 
             VerticalPhotoSwap verticalPhotoSwap = GetVerticalSlidePhotoSwapGain(
-                SwapPhotos(Slide.Copy(firstSlide), Slide.Copy(secondSlide), random.Next(0, 2), random.Next(0, 2)), 
-                firstSlideIndexInSlideshow, 
-                secondSlideIndexInSlideshow, 
+                SwapPhotos(Slide.Copy(firstSlide), Slide.Copy(secondSlide), random.Next(0, 2), random.Next(0, 2)),
+                firstSlideIndexInSlideshow,
+                secondSlideIndexInSlideshow,
                 omittedSlide);
 
             if (verticalPhotoSwap.Gain >= preSwapScore)
@@ -479,9 +481,10 @@ namespace PhotoSlideshow
             return new VerticalPhotoSwap(swappedSlidePhotos, firstSwapScore + secondSwapScore);
         }
 
-        public int ShuffleSlidesMutation(int length)
+        public int ShuffleSlidesMutation()
         {
             var random = new Random();
+            var length = random.Next(4, 12);
             var index = random.Next(0, Slideshow.Slides.Count);
             if (index + length > Slideshow.Slides.Count)
             {
@@ -514,5 +517,63 @@ namespace PhotoSlideshow
             return postShuffleScore - preShuffleScore;
         }
 
+        public void Mutate()
+        {
+            int mutationGain;
+            var randomOperator = new Random().Next(1, 11);
+            if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
+            {
+                mutationGain = SwapSlidesMutation();
+            }
+
+            else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit &&
+                randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
+            {
+                mutationGain = VerticalSlidePhotoSwapMutation();
+            }
+
+            else
+            {
+                mutationGain = ShuffleSlidesMutation();
+            }
+
+            Score += mutationGain;
+        }
+
+        public void Perturb(int percentage = 10)
+        {
+            var random = new Random();
+            var removedSlides = Slideshow.Slides.Count * percentage / 100;
+            List<Photo> removedPhotos = new List<Photo>();
+            for (int i = 0; i < removedSlides; i++)
+            {
+                var rnd = random.Next(Slideshow.Slides.Count - 1);
+                var removedSlide = Slideshow.Slides[rnd];
+                foreach (var photo in removedSlide.Photos)
+                {
+                    removedPhotos.Add(photo);
+                }
+
+                Slideshow.Slides.RemoveAt(rnd);
+            }
+
+
+            while (removedPhotos.Count != 0)
+            {
+                var rndSlide = random.Next(Slideshow.Slides.Count - 1);
+                var nextSlidePhotos = GetNextSlide(Slideshow.Slides[rndSlide], removedPhotos);
+                Slideshow.Slides.Insert(rndSlide + 1, new Slide() { Id = nextSlidePhotos[0].Id, Photos = nextSlidePhotos });
+
+                foreach(var photo in nextSlidePhotos)
+                {
+                    removedPhotos.Remove(photo);
+                }
+            }
+
+            //var solutionForRemovedPhotos = FindSolutionForPartialInstance(removedPhotos);
+            //Slideshow.Slides.AddRange(solutionForRemovedPhotos);
+            //Score += Evaluate(solutionForRemovedPhotos);
+            Score = Evaluate(Slideshow.Slides);
+        }
     }
 }

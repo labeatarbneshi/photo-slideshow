@@ -10,24 +10,53 @@ namespace PhotoSlideshow
 {
     class ILS
     {
-        private readonly Slideshow slideshow;
-        private readonly List<Slide> verticalSlides;
-        private readonly int initialScore;
-        private readonly Random random = new Random();
-        private Stopwatch timeWithoutProgress;
-        private Stopwatch executionTime;
-        private Stopwatch acceptWorseSolution;
-        public ILS(Slideshow slideshow)
+        public ILS()
         {
-            this.slideshow = slideshow;
-            verticalSlides = slideshow.Slides.Where(s => s.Photos.Any(p => p.Orientation == Orientation.VERTICAL)).ToList();
-            initialScore = slideshow.Score;
         }
 
         /// <summary>
         /// Starts solution optimizing by choosing operators randomly
         /// </summary>
-        public void Optimize() { }
+        public Solution FindSolution() {
+            
+            DateTime startTime = DateTime.Now;
+            Random rnd = new Random();
+            List<int> T = new List<int>() { 100, 120, 115, 70, 85, 90 };
+            Solution S = Solution.Generate();
+            Console.WriteLine($"[SOLUTION] Total generated slides: {S.Slideshow.Slides.Count}");
+            Console.WriteLine($"{DateTime.Now} Initial solution score: {S.Score}");
+            Solution H = S.Copy();
+            Solution Best = H.Copy();
+
+            while (!RunDurationReached(startTime))
+            {
+                DateTime startTimeInner = DateTime.Now;
+                int time = T[rnd.Next(T.Count)];
+
+                while (!RunDurationReached(startTime) && !SearchSpaceExplorationTimeLimitReached(startTimeInner))
+                {
+                    var R = S.Copy();
+                    R.Mutate();
+                    var random = rnd.Next(1, 6);
+                    if (S.Score < R.Score)
+                    {
+                        Console.WriteLine("New score: " + R.Score);
+                        S = R;
+                    }
+                }
+
+                if (S.Score > Best.Score)
+                {
+                    Best = S;
+                }
+
+                H = NewHomeBase(H, S);
+                S = H.Copy();
+                S.Perturb();
+            }
+
+            return Best;
+        }
         //{
         //    timeWithoutProgress = Stopwatch.StartNew();
         //    executionTime = Stopwatch.StartNew();
@@ -76,21 +105,19 @@ namespace PhotoSlideshow
         //    }
         //    while (executionTime.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
 
-        //    Solution.Save(slideshow, "final_solution");
+        public Solution NewHomeBase(Solution H, Solution S)
+        {
+            return S.Score >= H.Score ? S : H;
+        }
 
-        //public int Mutate(int chosenOperator)
-        //{
-        //    if (chosenOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
-        //    {
-        //        return Solution.SwapSlidesMutation(slideshow);
-        //    }
+        private bool RunDurationReached(DateTime startTime, int totalExecutionMinutes = 5)
+        {
+            return (int)DateTime.Now.Subtract(startTime).TotalMinutes > totalExecutionMinutes;
+        }
 
-        //    else if (chosenOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && chosenOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
-        //    {
-        //        return Solution.VerticalSlidePhotoSwapMutation(slideshow, verticalSlides);
-        //    }
-
-        //    return Solution.ShuffleSlidesMutation(slideshow, random.Next(4, 8));
-        //}
+        private bool SearchSpaceExplorationTimeLimitReached(DateTime startTime, int totalExecutionSeconds = 20)
+        {
+            return (int)DateTime.Now.Subtract(startTime).TotalSeconds > totalExecutionSeconds;
+        }
     }
 }

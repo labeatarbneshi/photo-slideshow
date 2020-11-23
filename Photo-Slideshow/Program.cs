@@ -50,8 +50,8 @@ namespace PhotoSlideshow
             Console.WriteLine($"[SOLUTION] Total generated slides: {solution.Slideshow.Slides.Count}");
             Console.WriteLine($"{DateTime.Now} Initial solution score: {solution.Score}");
 
-            //ILS ils = new ILS(slideshow);
-            //ils.Optimize();
+            ILS ils = new ILS();
+            ils.FindSolution();
         }
 
         static Photo ProcessLine(string line, int lineNo)
