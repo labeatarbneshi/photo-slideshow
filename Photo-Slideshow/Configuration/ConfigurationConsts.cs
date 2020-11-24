@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PhotoSlideshow.Configuration
+﻿namespace PhotoSlideshow.Configuration
 {
     public class ConfigurationConsts
     {
         // Total algorithm run duration
-        public static long RunDuration = 1800000;
+        public static long RunDuration = 120000;
 
         // From 1 - 4 -> Slide swap operator
         public static int SlideSwapUpperFrequency = 4;
