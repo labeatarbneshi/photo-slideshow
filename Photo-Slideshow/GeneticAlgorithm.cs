@@ -25,7 +25,7 @@ namespace PhotoSlideshow
 
         public Solution FindSolution()
         {
-           
+            GenerateSolution();
         }
 
         public void GenerateSolution()
