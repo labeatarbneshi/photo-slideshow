@@ -9,7 +9,6 @@ namespace PhotoSlideshow
 {
     class Solution
     {
-        private readonly Collection Collection;
         private List<Photo> HorizontalPhotos;
         private List<Photo> VerticalPhotos;
         private Slideshow Slideshow;
@@ -17,9 +16,8 @@ namespace PhotoSlideshow
         public static int MinTagNoInVerticalPhoto = 0;
 
         private readonly Random random = new Random();
-        public Solution(Collection collection)
+        public Solution()
         {
-            Collection = collection;
             PrepareCollection();
         }
 
@@ -30,7 +28,7 @@ namespace PhotoSlideshow
             List<Photo> collectionPhotos = new List<Photo>(Collection.Photos);
             List<Slide> slides = new List<Slide>();
 
-            var splittedInstance = Common.SplitList(Collection.Photos, 30000).ToArray();
+            var splittedInstance = Common.SplitList(Collection.Photos, 20000).ToArray();
 
             var taskList = new List<Task<List<Slide>>>();
             foreach (var item in splittedInstance)
@@ -45,10 +43,6 @@ namespace PhotoSlideshow
             {
                 slides.AddRange(task.Result);
             }
-
-
-            //Find a random horizontal photo that will be in the first slide of slideshow
-            //HANDLE WHEN THERE IS NO HORIZONTAL PHOTO
 
             int score = Common.EvaluateSolution(slides);
 
@@ -84,8 +78,6 @@ namespace PhotoSlideshow
         private List<Photo> GetNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
         {
             var random = new Random();
-            int slidingWindow = Common.CalculatePhotosToConsider(1, unselectedPhotos.Count, true);
-
             List<CandidatePhoto> candidatePhotos = GetCandidatePhotos(currentSlide, unselectedPhotos);
             List<Photo> chosenPhotos = new List<Photo>();
             CandidatePhoto candidate = null;
@@ -123,7 +115,7 @@ namespace PhotoSlideshow
         private List<CandidatePhoto> GetCandidatePhotos(Slide currentSlide, List<Photo> unusedPhotos, Photo firstSlidePhoto = null, int initialScore = -1)
         {
             var random = new Random();
-            int slidingWindow = Common.CalculatePhotosToConsider(1, unusedPhotos.Count);
+            int slidingWindow = Common.CalculatePhotosToConsider(10, unusedPhotos.Count, true);
             int scoreToBeat = initialScore != -1 ? initialScore : 0;
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
             List<Photo> searchSpacePhotos = new List<Photo>();

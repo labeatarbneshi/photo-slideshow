@@ -17,31 +17,30 @@ namespace PhotoSlideshow
 
         static void ReadFile()
         {
-            Collection collection = new Collection();
-            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\e_shiny_selfies.txt", FileMode.Open, FileAccess.Read);
 
             Console.WriteLine("Reading instance content...");
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
             {
                 string line;
                 int lineNumber = 1;
-                collection.Photos = new List<Photo>();
+                Collection.Photos = new List<Photo>();
                 while ((line = streamReader.ReadLine()) != null)
                 {
                     if (lineNumber == 1)
                     {
-                        collection.Size = int.Parse(line);
+                        Collection.Size = int.Parse(line);
                     }
                     else
                     {
-                        collection.Photos.Add(ProcessLine(line, lineNumber));
+                        Collection.Photos.Add(ProcessLine(line, lineNumber));
                     }
                     lineNumber++;
                 }
             }
 
             Console.WriteLine("Photo collection setup finished. Starting inital solution...");
-            Solution solution = new Solution(collection);
+            Solution solution = new Solution();
             solution.Generate();
         }
 

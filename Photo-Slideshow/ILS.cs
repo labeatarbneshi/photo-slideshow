@@ -1,12 +1,11 @@
-﻿using PhotoSlideshow.Operators;
+﻿using PhotoSlideshow.Configuration;
 using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
+using PhotoSlideshow.Operators;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using PhotoSlideshow.Configuration;
 
 namespace PhotoSlideshow
 {
@@ -66,7 +65,7 @@ namespace PhotoSlideshow
 
                 if(ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis > 5000)
                 {
-                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 1200;
+                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 2500;
                 }
 
 

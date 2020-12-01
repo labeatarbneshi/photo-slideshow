@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D63A1C18-1CBB-47E3-90E1-BD10EFB9D6B5}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Photo_Slideshow</RootNamespace>
+    <RootNamespace>PhotoSlideshow</RootNamespace>
     <AssemblyName>Photo-Slideshow</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -45,6 +45,7 @@
     <Compile Include="Configuration\ConfigurationConsts.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Enums\Orientation.cs" />
+    <Compile Include="GeneticAlgorithm.cs" />
     <Compile Include="ILS.cs" />
     <Compile Include="Models\CandidatePhoto.cs" />
     <Compile Include="Models\Collection.cs" />
