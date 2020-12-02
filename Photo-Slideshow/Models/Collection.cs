@@ -6,5 +6,7 @@ namespace PhotoSlideshow.Models
     {
         public static int Size { get; set; }
         public static List<Photo> Photos { get; set; }
+        public static List<Photo> VerticalPhotos { get; set; }
+        public static List<Photo> HorizontalPhotos { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using PhotoSlideshow.Models;
+﻿using PhotoSlideshow.Enums;
+using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +18,7 @@ namespace PhotoSlideshow
 
         static void ReadFile()
         {
-            var fileStream = new FileStream(@"C:\Users\Arbneshi\Labi\dev\photo-slideshow\Photo-Slideshow\Instances\e_shiny_selfies.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
 
             Console.WriteLine("Reading instance content...");
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
@@ -39,9 +40,14 @@ namespace PhotoSlideshow
                 }
             }
 
+            Collection.HorizontalPhotos = new List<Photo>(Collection.Photos.Where(photo => photo.Orientation == Orientation.HORIZONTAL).ToList());
+            Collection.VerticalPhotos = new List<Photo>(Collection.Photos.Where(photo => photo.Orientation == Orientation.VERTICAL).ToList());
             Console.WriteLine("Photo collection setup finished. Starting inital solution...");
-            Solution solution = new Solution();
-            solution.Generate();
+            //var solution = Solution.GenerateRandom();
+            //ILS iLS = new ILS(solution);
+            //iLS.Optimize();
+            GeneticAlgorithm ga = new GeneticAlgorithm(100, 3, 80, 10000);
+            var a  = ga.FindSolution();
         }
 
         static Photo ProcessLine(string line, int lineNo)

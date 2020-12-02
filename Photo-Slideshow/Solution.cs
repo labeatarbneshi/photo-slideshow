@@ -1,7 +1,10 @@
-﻿using PhotoSlideshow.Enums;
+﻿using PhotoSlideshow.Configuration;
+using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
+using PhotoSlideshow.Operators;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,20 +12,17 @@ namespace PhotoSlideshow
 {
     class Solution
     {
-        private List<Photo> HorizontalPhotos;
-        private List<Photo> VerticalPhotos;
-        private Slideshow Slideshow;
-        public static int MaxTagNoInVerticalPhoto = 0;
-        public static int MinTagNoInVerticalPhoto = 0;
-
-        private readonly Random random = new Random();
+        public Guid Id { get; }
+        public Slideshow Slideshow{ get; set; }
         public Solution()
         {
-            PrepareCollection();
+            Id = Guid.NewGuid();
+            Slideshow = new Slideshow();
         }
 
-        public void Generate()
+        public static Solution GenerateRandom()
         {
+            var solution = new Solution();
             Console.WriteLine($"[{DateTime.Now}] Generating solution...");
 
             List<Photo> collectionPhotos = new List<Photo>(Collection.Photos);
@@ -33,9 +33,8 @@ namespace PhotoSlideshow
             var taskList = new List<Task<List<Slide>>>();
             foreach (var item in splittedInstance)
             {
-                taskList.Add(Task<List<Slide>>.Factory.StartNew(() => FindSolutionForPartialInstance(item)));
+                taskList.Add(Task<List<Slide>>.Factory.StartNew(() => solution.FindSolutionForPartialInstance(item)));
             }
-
 
             Task.WaitAll(taskList.ToArray());
 
@@ -46,33 +45,66 @@ namespace PhotoSlideshow
 
             int score = Common.EvaluateSolution(slides);
 
-            Slideshow = new Slideshow(slides, score);
+            solution.Slideshow = new Slideshow(slides, score);
 
             Console.WriteLine($"[SOLUTION] Total generated slides: {slides.Count}");
             Console.WriteLine($"{DateTime.Now} Initial solution score: {score}");
 
-            Console.WriteLine($"[ILS] Optimizing solution...");
-
-            ILS ils = new ILS(CopySolution(Slideshow));
-            ils.Optimize();
+            return solution;
         }
 
-        /// <summary>
-        /// Prepares collection by separating photos by orientation
-        /// </summary>
-        private void PrepareCollection()
+        private List<Slide> FindSolutionForPartialInstance(List<Photo> photos)
         {
-            //FILTERING PHOTOS BY ORIENTATION
-            HorizontalPhotos = new List<Photo>(Collection.Photos.Where(photo => photo.Orientation == Orientation.HORIZONTAL).ToList());
-            Console.WriteLine($"[COLLECTION INFO] Total number of horizontal photos: {HorizontalPhotos.Count}");
-            VerticalPhotos = new List<Photo>(Collection.Photos.Where(photo => photo.Orientation == Orientation.VERTICAL).ToList());
-            Console.WriteLine($"[COLLECTION INFO] Total number of vertical photos: {VerticalPhotos.Count}");
-
-            //IF NUMBER OF VERTICAL PHOTOS IS ODD WE SHOULD REMOVE ONE FROM LIST
-            if (VerticalPhotos.Count % 2 != 0)
+            var random = new Random();
+            List<Photo> collectionPhotos = new List<Photo>(photos);
+            List<Slide> slides = new List<Slide>();
+            var currentPhoto = photos[random.Next(0, photos.Count - 1)];
+            Slide currentSlide = null;
+            if (currentPhoto.Orientation == Orientation.HORIZONTAL)
             {
-                VerticalPhotos.Remove(VerticalPhotos.OrderBy(photo => photo.NumberOfTags).First());
+                currentSlide = new Slide()
+                {
+                    Id = currentPhoto.Id,
+                    Photos = new List<Photo>()
+                    {
+                        currentPhoto
+                    }
+                };
+                collectionPhotos.Remove(currentPhoto);
             }
+            else
+            {
+                currentSlide = new Slide()
+                {
+                    Id = currentPhoto.Id,
+                    Photos = new List<Photo>()
+                    {
+                        currentPhoto,
+                        photos.FirstOrDefault(x => x.Orientation == Orientation.VERTICAL && x.Id != currentPhoto.Id)
+                    }
+                };
+            }
+
+            slides.Add(currentSlide);
+            foreach (var photo in currentSlide.Photos)
+            {
+                collectionPhotos.Remove(photo);
+            }
+
+            while (collectionPhotos.Count > 0)
+            {
+                List<Photo> nextSlidePhotos = GetNextSlide(currentSlide, collectionPhotos);
+
+                currentSlide = new Slide() { Id = nextSlidePhotos[0].Id, Photos = nextSlidePhotos };
+                slides.Add(currentSlide);
+
+                foreach (var photo in nextSlidePhotos)
+                {
+                    collectionPhotos.Remove(photo);
+                }
+            }
+
+            return slides;
         }
 
         private List<Photo> GetNextSlide(Slide currentSlide, List<Photo> unselectedPhotos)
@@ -97,7 +129,8 @@ namespace PhotoSlideshow
                 //Find another vertical photo to add to current slide
                 List<CandidatePhoto> verticalCandidatePhotos = GetCandidatePhotos(currentSlide, unselectedPhotos.FindAll(photo => photo.Orientation == Orientation.VERTICAL), candidate.Photo, candidate.Score);
                 chosenPhotos.Add(verticalCandidatePhotos.Count == 0 ?
-                    unselectedPhotos.Where(p => p.Id != candidate.Photo.Id && p.Orientation == Orientation.VERTICAL).OrderBy(photo => photo.NumberOfTags).First() :
+                    unselectedPhotos.Where(p => p.Id != candidate.Photo.Id && p.Orientation == Orientation.VERTICAL)
+                                    .OrderBy(photo => photo.NumberOfTags).First() :
                     CandidateSelectionProcess(verticalCandidatePhotos).Photo);
             }
 
@@ -115,7 +148,7 @@ namespace PhotoSlideshow
         private List<CandidatePhoto> GetCandidatePhotos(Slide currentSlide, List<Photo> unusedPhotos, Photo firstSlidePhoto = null, int initialScore = -1)
         {
             var random = new Random();
-            int slidingWindow = Common.CalculatePhotosToConsider(10, unusedPhotos.Count, true);
+            int slidingWindow = Common.CalculatePhotosToConsider(1, unusedPhotos.Count);
             int scoreToBeat = initialScore != -1 ? initialScore : 0;
             List<CandidatePhoto> candidatePhotos = new List<CandidatePhoto>();
             List<Photo> searchSpacePhotos = new List<Photo>();
@@ -177,67 +210,41 @@ namespace PhotoSlideshow
         /// </summary>
         /// <param name="slideshow"></param>
         /// <returns></returns>
-        private Slideshow CopySolution(Slideshow slideshow)
+        public Solution Copy()
         {
-            List<Slide> slides = new List<Slide>(slideshow.Slides);
-            int score = slideshow.Score;
+            List<Slide> slides = new List<Slide>(Slideshow.Slides);
+            int score = Slideshow.Score;
 
-            return new Slideshow(slides, score);
+            var solution = new Solution
+            {
+                Slideshow = new Slideshow(slides, score)
+            };
+
+            return solution;
         }
 
-
-        private List<Slide> FindSolutionForPartialInstance(List<Photo> photos)
+        public int Mutate()
         {
             var random = new Random();
-            List<Photo> collectionPhotos = new List<Photo>(photos);
-            List<Slide> slides = new List<Slide>();
-            var currentPhoto = photos[random.Next(0, photos.Count - 1)];
-            Slide currentSlide = null;
-            if (currentPhoto.Orientation == Orientation.HORIZONTAL)
+            var randomOperator = random.Next(1, 11);
+            int gain;
+            if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
             {
-                currentSlide = new Slide()
-                {
-                    Id = currentPhoto.Id,
-                    Photos = new List<Photo>()
-                    {
-                        currentPhoto
-                    }
-                };
-                collectionPhotos.Remove(currentPhoto);
+                gain = Swap.SwapSlides(Slideshow);
             }
+
+            else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
+            {
+                gain = Swap.SwapVerticalSlidePhotos(Slideshow);
+            }
+
             else
             {
-                currentSlide = new Slide()
-                {
-                    Id = currentPhoto.Id,
-                    Photos = new List<Photo>()
-                    {
-                        currentPhoto,
-                        photos.FirstOrDefault(x => x.Orientation == Orientation.VERTICAL && x.Id != currentPhoto.Id)
-                    }
-                };
+                gain = Shuffle.ShuffleSlides(Slideshow, random.Next(4, 8));
             }
 
-            slides.Add(currentSlide);
-            foreach (var photo in currentSlide.Photos)
-            {
-                collectionPhotos.Remove(photo);
-            }
-
-            while (collectionPhotos.Count > 0)
-            {
-                List<Photo> nextSlidePhotos = GetNextSlide(currentSlide, collectionPhotos);
-
-                currentSlide = new Slide() { Id = nextSlidePhotos[0].Id, Photos = nextSlidePhotos };
-                slides.Add(currentSlide);
-
-                foreach (var photo in nextSlidePhotos)
-                {
-                    collectionPhotos.Remove(photo);
-                }
-            }
-
-            return slides;
+            Slideshow.Score += gain;
+            return gain;
         }
     }
 }

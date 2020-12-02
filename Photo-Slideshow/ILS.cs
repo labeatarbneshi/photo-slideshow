@@ -1,28 +1,20 @@
 ﻿using PhotoSlideshow.Configuration;
-using PhotoSlideshow.Enums;
-using PhotoSlideshow.Models;
-using PhotoSlideshow.Operators;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace PhotoSlideshow
 {
     class ILS
     {
-        private readonly Slideshow slideshow;
-        private readonly List<Slide> verticalSlides;
+        private readonly Solution solution;
         private readonly int initialScore;
-        private readonly Random random = new Random();
-        private Stopwatch timeWithoutProgress;
-        private Stopwatch executionTime;
-        private Stopwatch acceptWorseSolution;
-        public ILS(Slideshow slideshow)
+        public Stopwatch executionTime;
+        public static Stopwatch TimeWithoutProgress;
+        public static Stopwatch AcceptWorseSolution;
+        public ILS(Solution solution)
         {
-            this.slideshow = slideshow;
-            verticalSlides = slideshow.Slides.Where(s => s.Photos.Any(p => p.Orientation == Orientation.VERTICAL)).ToList();
-            initialScore = slideshow.Score;
+            this.solution = solution;
+            initialScore = solution.Slideshow.Score;
         }
 
         /// <summary>
@@ -30,57 +22,43 @@ namespace PhotoSlideshow
         /// </summary>
         public void Optimize()
         {
-            timeWithoutProgress = Stopwatch.StartNew();
+            TimeWithoutProgress = Stopwatch.StartNew();
             executionTime = Stopwatch.StartNew();
-            acceptWorseSolution = Stopwatch.StartNew();
+            AcceptWorseSolution = Stopwatch.StartNew();
 
             var score = initialScore;
             var highestScore = initialScore;
             do
             {
-                var randomOperator = random.Next(1, 11);
+                var mutationGain = solution.Mutate();
 
-                var gainFromOperator = 0;
-                if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
+                if (mutationGain < 0)
                 {
-                    gainFromOperator = Swap.SwapSlides(slideshow, acceptWorseSolution, timeWithoutProgress);
+                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis += 100;
+                    AcceptWorseSolution.Restart();
+                    TimeWithoutProgress.Restart();
                 }
 
-                else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
+                if (ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis > 10000)
                 {
-                    gainFromOperator = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, acceptWorseSolution, timeWithoutProgress);
-                }
-
-                else if (randomOperator > ConfigurationConsts.ShuffleOperatorFrequency)
-                {
-                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 8));
-                }
-
-                if (gainFromOperator < 0)
-                {
-                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis += 25;
-                    acceptWorseSolution.Restart();
-                    timeWithoutProgress.Restart();
-                }
-
-                if(ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis > 5000)
-                {
+                    ConfigurationConsts.SlideSwapUpperFrequency = 0;
+                    ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit = 1;
+                    ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit = 10;
+                    ConfigurationConsts.ShuffleOperatorFrequency = 12;
                     ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 2500;
                 }
 
-
-
-                score += gainFromOperator;
-                if (gainFromOperator > 0)
+                score += mutationGain;
+                if (mutationGain > 0)
                 {
                     highestScore = score;
-                    timeWithoutProgress.Restart();
+                    TimeWithoutProgress.Restart();
                     Console.WriteLine("NEW SCORE: " + score);
                 }
             }
             while (executionTime.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
 
-            Common.SaveSolution(slideshow, "final_solution");
+            Common.SaveSolution(solution.Slideshow, "final_solution");
         }
     }
 }

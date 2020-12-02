@@ -17,7 +17,7 @@ namespace PhotoSlideshow.Operators
         /// Swap two randomly selected slides
         /// </summary>
         /// <returns>Result achiveed by swap</returns>
-        public static int SwapSlides(Slideshow slideshow, Stopwatch acceptWorseSolution, Stopwatch timeWithoutProgress)
+        public static int SwapSlides(Slideshow slideshow, bool isILS = false)
         {
             var firstSlideIndex = randomNoGenerator.Next(0, slideshow.Slides.Count);
             int secondSlideIndex;
@@ -70,9 +70,9 @@ namespace PhotoSlideshow.Operators
                 secondSlide.BadNeighbours.Add(firstSlide.Photos[0].Id);
             }
 
-            if (postSwapScore >= preSwapScore ||
-                (acceptWorseSolution.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis &&
-                timeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis))
+            if (postSwapScore >= preSwapScore || isILS &&
+                (ILS.AcceptWorseSolution.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis &&
+                ILS.TimeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis))
             {
                 return postSwapScore - preSwapScore;
 
@@ -80,7 +80,6 @@ namespace PhotoSlideshow.Operators
             else
             {
                 SwapSlidesPosition(slideshow.Slides, firstSlideIndex, secondSlideIndex);
-
                 return 0;
             }
         }
@@ -167,18 +166,18 @@ namespace PhotoSlideshow.Operators
         /// Randomly selects two slides with vertical photos and generates all slides from given photos by calculating score.
         /// </summary>
         /// <returns>The highest score from combination of photos</returns>
-        public static int SwapVerticalSlidePhotos(Slideshow slideshow, List<Slide> verticalSlides, Stopwatch acceptWorseSolution, Stopwatch timeWithoutProgress)
+        public static int SwapVerticalSlidePhotos(Slideshow slideshow, bool isILS = false)
         {
-            var firstSlideIndex = randomNoGenerator.Next(0, verticalSlides.Count);
+            var firstSlideIndex = randomNoGenerator.Next(0, Collection.VerticalPhotos.Count);
 
             int secondSlideIndex;
             do
             {
-                secondSlideIndex = randomNoGenerator.Next(0, verticalSlides.Count);
+                secondSlideIndex = randomNoGenerator.Next(0, Collection.VerticalPhotos.Count);
             } while (firstSlideIndex == secondSlideIndex);
 
-            Slide firstSlide = slideshow.Slides.Find(s => s.Id == verticalSlides[firstSlideIndex].Id);
-            Slide secondSlide = slideshow.Slides.Find(s => s.Id == verticalSlides[secondSlideIndex].Id);
+            Slide firstSlide = slideshow.Slides.Find(s => s.Id == Collection.VerticalPhotos[firstSlideIndex].Id);
+            Slide secondSlide = slideshow.Slides.Find(s => s.Id == Collection.VerticalPhotos[secondSlideIndex].Id);
 
 
             if (firstSlide == null || secondSlide == null)
@@ -218,14 +217,13 @@ namespace PhotoSlideshow.Operators
                 return verticalPhotoSwap.Gain - preSwapScore;
             }
 
-            if (acceptWorseSolution.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis &&
-                timeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis)
+            if (isILS && ILS.AcceptWorseSolution.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis &&
+                ILS.TimeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis)
             {
                 slideshow.Slides[firstSlideIndexInSlideshow] = verticalPhotoSwap.Slides[0];
                 slideshow.Slides[secondSlideIndexInSlideshow] = verticalPhotoSwap.Slides[1];
 
                 var hardSwapWithFirstIndex = HardSwap(slideshow, firstSlideIndexInSlideshow, ConfigurationConsts.RetriesAfterBadVerticalSwap);
-
                 var hardSwapWithSecondIndex = HardSwap(slideshow, secondSlideIndexInSlideshow, ConfigurationConsts.RetriesAfterBadVerticalSwap);
 
                 return verticalPhotoSwap.Gain + hardSwapWithFirstIndex + hardSwapWithSecondIndex - preSwapScore;
