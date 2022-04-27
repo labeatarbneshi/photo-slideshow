@@ -18,7 +18,7 @@ namespace PhotoSlideshow
 
         static void ReadFile()
         {
-            var fileStream = new FileStream(@"C:\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
+            var fileStream = new FileStream(@"C:\Users\Labeat\dev\photo-slideshow\Photo-Slideshow\Instances\c_memorable_moments.txt", FileMode.Open, FileAccess.Read);
 
             Console.WriteLine("Reading instance content...");
             using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
@@ -43,11 +43,15 @@ namespace PhotoSlideshow
             Collection.HorizontalPhotos = new List<Photo>(Collection.Photos.Where(photo => photo.Orientation == Orientation.HORIZONTAL).ToList());
             Collection.VerticalPhotos = new List<Photo>(Collection.Photos.Where(photo => photo.Orientation == Orientation.VERTICAL).ToList());
             Console.WriteLine("Photo collection setup finished. Starting inital solution...");
-            //var solution = Solution.GenerateRandom();
-            //ILS iLS = new ILS(solution);
-            //iLS.Optimize();
-            GeneticAlgorithm ga = new GeneticAlgorithm(100, 3, 80, 10000);
-            var a  = ga.FindSolution();
+
+            //GeneticAlgorithm ga = new GeneticAlgorithm(20, 10, 80, 50, 2);
+            //var a = ga.FindSolution();
+            //Console.WriteLine($"{DateTime.Now} Finished with score:  {a.Slideshow.Score}");
+
+            var solution = Solution.GenerateRandom();
+            ILS iteratedLocalSearch = new ILS();
+            iteratedLocalSearch.FindSolution(1, solution);
+            Common.SaveSolution(solution.Slideshow, "e_solution");
         }
 
         static Photo ProcessLine(string line, int lineNo)
@@ -56,7 +60,7 @@ namespace PhotoSlideshow
             Photo photo = new Photo
             {
                 Id = lineNo,
-                Orientation = lineElements[0] == "H" ? Enums.Orientation.HORIZONTAL : Enums.Orientation.VERTICAL,
+                Orientation = lineElements[0] == "H" ? Orientation.HORIZONTAL : Orientation.VERTICAL,
                 NumberOfTags = int.Parse(lineElements[1]),
                 Tags = lineElements.Skip(2).Take(lineElements.Length - 1).ToList()
             };

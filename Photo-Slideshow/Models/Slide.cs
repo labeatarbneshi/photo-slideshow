@@ -8,6 +8,8 @@ namespace PhotoSlideshow.Models
         public int Id { get; set; }
         public List<Photo> Photos { get; set; }
         public List<int> BadNeighbours { get; set; } = new List<int>();
+        public int ScoreWithNextSlide { get; set; } = -1;
+        public int ScoreWithPreviousSlide { get; set; } = -1;
         public List<string> GetTags()
         {
             if(Photos.Count == 2)

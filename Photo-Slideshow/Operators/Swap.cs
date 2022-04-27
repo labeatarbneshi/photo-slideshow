@@ -17,7 +17,7 @@ namespace PhotoSlideshow.Operators
         /// Swap two randomly selected slides
         /// </summary>
         /// <returns>Result achiveed by swap</returns>
-        public static int SwapSlides(Slideshow slideshow, bool isILS = false)
+        public static int SwapSlides(Slideshow slideshow)
         {
             var firstSlideIndex = randomNoGenerator.Next(0, slideshow.Slides.Count);
             int secondSlideIndex;
@@ -32,14 +32,14 @@ namespace PhotoSlideshow.Operators
 
             Slide secondSlide = slideshow.Slides[secondSlideIndex];
 
-            if (firstSlide.Photos.Count == 1 && secondSlide.Photos.Count == 1)
-            {
-                bothHorizontal = true;
-                if (firstSlide.BadNeighbours.Contains(secondSlide.Photos[0].Id))
-                {
-                    return 0;
-                }
-            }
+            //if (firstSlide.Photos.Count == 1 && secondSlide.Photos.Count == 1)
+            //{
+            //    bothHorizontal = true;
+            //    if (firstSlide.BadNeighbours.Contains(secondSlide.Photos[0].Id))
+            //    {
+            //        return 0;
+            //    }
+            //}
 
             var omittedSlide = -1;
             if (secondSlideIndex - 1 == firstSlideIndex)
@@ -64,15 +64,13 @@ namespace PhotoSlideshow.Operators
 
             var gain = postSwapScore - preSwapScore;
 
-            if (bothHorizontal && postSwapScore == 0)
-            {
-                firstSlide.BadNeighbours.Add(secondSlide.Photos[0].Id);
-                secondSlide.BadNeighbours.Add(firstSlide.Photos[0].Id);
-            }
+            //if (bothHorizontal && postSwapScore == 0)
+            //{
+            //    firstSlide.BadNeighbours.Add(secondSlide.Photos[0].Id);
+            //    secondSlide.BadNeighbours.Add(firstSlide.Photos[0].Id);
+            //}
 
-            if (postSwapScore >= preSwapScore || isILS &&
-                (ILS.AcceptWorseSolution.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis &&
-                ILS.TimeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis))
+            if (postSwapScore >= preSwapScore || ConfigurationConsts.AcceptWorse == randomNoGenerator.Next(100000))
             {
                 return postSwapScore - preSwapScore;
 
@@ -166,7 +164,7 @@ namespace PhotoSlideshow.Operators
         /// Randomly selects two slides with vertical photos and generates all slides from given photos by calculating score.
         /// </summary>
         /// <returns>The highest score from combination of photos</returns>
-        public static int SwapVerticalSlidePhotos(Slideshow slideshow, bool isILS = false)
+        public static int SwapVerticalSlidePhotos(Slideshow slideshow)
         {
             var firstSlideIndex = randomNoGenerator.Next(0, Collection.VerticalPhotos.Count);
 
@@ -217,8 +215,7 @@ namespace PhotoSlideshow.Operators
                 return verticalPhotoSwap.Gain - preSwapScore;
             }
 
-            if (isILS && ILS.AcceptWorseSolution.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterMillis &&
-                ILS.TimeWithoutProgress.ElapsedMilliseconds > ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis)
+            if (ConfigurationConsts.AcceptWorse == randomNoGenerator.Next(100000))
             {
                 slideshow.Slides[firstSlideIndexInSlideshow] = verticalPhotoSwap.Slides[0];
                 slideshow.Slides[secondSlideIndexInSlideshow] = verticalPhotoSwap.Slides[1];
