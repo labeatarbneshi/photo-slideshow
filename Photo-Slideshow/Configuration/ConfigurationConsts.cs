@@ -15,14 +15,18 @@
         // Shuffle swap operator frequency
         public static int ShuffleOperatorFrequency = 9;
 
-        public static int AcceptWorseSolutionAfterMillis = 6000;
+        public static int AcceptWorseSolutionAfterMillis = 60000;
         public static int RetriesAfterBadVerticalSwap = 100;
-        public static int AcceptWorseSolutionAfterNoProgressMillis = 2000000000;
+        public static int AcceptWorseSolutionAfterNoProgressMillis = 120000;
 
         public static int PerturbationPercentage = 5;
-        public static int SlidingWindowPercentage = 20;
+        public static int SlidingWindowPercentage = 10;
         public static int NumberOfGenerations = 5;
-
+        public static int PopSize = 20;
+        public static int TournamentSize = 10;
+        public static int MutationRate = 80;
+        public static int CrossoverRate = 20;
+        public static int GAIterations = 10;
         public static int AcceptWorse = 10000011;
     }
 }

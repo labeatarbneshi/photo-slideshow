@@ -290,7 +290,6 @@ namespace PhotoSlideshow
             }
             var currentSlide = new Slide() { Id = randomPhoto.Id, Photos = randomSlidePhotos };
             generatedSlides.Add(currentSlide);
-            ConfigurationConsts.SlidingWindowPercentage = 100;
             while (removedPhotos.Count != 0)
             {
                 var nextSlidePhotos = GetNextSlide(currentSlide, removedPhotos);

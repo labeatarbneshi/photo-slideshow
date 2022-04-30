@@ -1,4 +1,5 @@
-﻿using PhotoSlideshow.Enums;
+﻿using PhotoSlideshow.Configuration;
+using PhotoSlideshow.Enums;
 using PhotoSlideshow.Models;
 using System;
 using System.Collections.Generic;
@@ -44,14 +45,11 @@ namespace PhotoSlideshow
             Collection.VerticalPhotos = new List<Photo>(Collection.Photos.Where(photo => photo.Orientation == Orientation.VERTICAL).ToList());
             Console.WriteLine("Photo collection setup finished. Starting inital solution...");
 
-            //GeneticAlgorithm ga = new GeneticAlgorithm(20, 10, 80, 50, 2);
-            //var a = ga.FindSolution();
-            //Console.WriteLine($"{DateTime.Now} Finished with score:  {a.Slideshow.Score}");
+            GeneticAlgorithm ga = new GeneticAlgorithm();
+            var a = ga.FindSolution();
+            Console.WriteLine($"{DateTime.Now} Finished with score:  {a.Slideshow.Score}");
 
-            var solution = Solution.GenerateRandom();
-            ILS iteratedLocalSearch = new ILS();
-            iteratedLocalSearch.FindSolution(1, solution);
-            Common.SaveSolution(solution.Slideshow, "e_solution");
+            Common.SaveSolution(a.Slideshow, "e_solution");
         }
 
         static Photo ProcessLine(string line, int lineNo)

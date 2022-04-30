@@ -16,13 +16,13 @@ namespace PhotoSlideshow
         readonly int iterations;
         public List<Solution> Population { get; set; }
 
-        public GeneticAlgorithm(int populationSize, int tournamentSize, int mutationRate, int crossoverRate, int iterations)
+        public GeneticAlgorithm()
         {
-            this.populationSize = populationSize;
-            this.tournamentSize = tournamentSize;
-            this.mutationRate = mutationRate;
-            this.crossoverRate = crossoverRate;
-            this.iterations = iterations;
+            populationSize = ConfigurationConsts.PopSize;
+            tournamentSize = ConfigurationConsts.TournamentSize;
+            mutationRate = ConfigurationConsts.MutationRate;
+            crossoverRate = ConfigurationConsts.CrossoverRate;
+            iterations = ConfigurationConsts.GAIterations;
             Population = new List<Solution>();
         }
 
@@ -85,7 +85,7 @@ namespace PhotoSlideshow
 
 
             Console.WriteLine($"{DateTime.Now} starting ils with score: {test.Slideshow.Score}");
-            var best2 = iteratedLocalSearch.FindSolution(5, test);
+            var best2 = iteratedLocalSearch.OptimizeV2(test);
 
             return best2;
         }
