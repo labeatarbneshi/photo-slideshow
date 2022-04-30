@@ -7,6 +7,10 @@ namespace PhotoSlideshow.Models
         public List<Slide> Slides { get; set; }
         public int Score { get; set; }
 
+        public Slideshow()
+        {
+
+        }
         public Slideshow(List<Slide> slides, int score)
         {
             Slides = slides;

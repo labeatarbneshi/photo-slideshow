@@ -1,0 +1,5 @@
+4
+H 2 shqiponja mali
+V 4 mali bora shtëpia qeni
+V 5 shtëpia lahuta shqiponja plisi
+H 4 shtëpia plisi flamuri shqiponja

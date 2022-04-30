@@ -45,7 +45,13 @@ namespace PhotoSlideshow
 
             for (int i = 0; i < slides.Count - 1; i++)
             {
-                score += EvaluateAdjacentSlides(slides[i].GetTags(), slides[i + 1].GetTags());
+                var slideScore = EvaluateAdjacentSlides(slides[i].GetTags(), slides[i + 1].GetTags());
+                slides[i].ScoreWithNextSlide = slideScore;
+                if(i != slides.Count - 1)
+                {
+                    slides[i + 1].ScoreWithPreviousSlide = slideScore;
+                }
+                score += slideScore;
             }
 
 
@@ -171,6 +177,24 @@ namespace PhotoSlideshow
                     }
                 }
             }
+        }
+
+
+        public static List<int> GetRandomNumbers(int uniqueNumbers, int randomNumbers)
+        {
+            Random random = new Random();
+            List<int> uniqueInts = new List<int>(uniqueNumbers);
+            List<int> ranInts = new List<int>(randomNumbers);
+            for (int i = 1; i < uniqueNumbers; i++) { uniqueInts.Add(i); }
+
+            for (int i = 1; i < randomNumbers; i++)
+            {
+                int index = random.Next(uniqueInts.Count);
+                ranInts.Add(uniqueInts[index]);
+                uniqueInts.RemoveAt(index);
+            }
+
+            return ranInts.OrderBy(x => x).ToList();
         }
     }
 }

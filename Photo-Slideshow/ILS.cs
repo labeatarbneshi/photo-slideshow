@@ -1,87 +1,131 @@
-﻿using PhotoSlideshow.Operators;
-using PhotoSlideshow.Enums;
-using PhotoSlideshow.Models;
+﻿using PhotoSlideshow.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using PhotoSlideshow.Configuration;
 
 namespace PhotoSlideshow
 {
     class ILS
     {
-        private readonly Slideshow slideshow;
-        private readonly List<Slide> verticalSlides;
-        private readonly int initialScore;
-        private readonly Random random = new Random();
-        private Stopwatch timeWithoutProgress;
-        private Stopwatch executionTime;
-        private Stopwatch acceptWorseSolution;
-        public ILS(Slideshow slideshow)
+        public ILS()
         {
-            this.slideshow = slideshow;
-            verticalSlides = slideshow.Slides.Where(s => s.Photos.Any(p => p.Orientation == Orientation.VERTICAL)).ToList();
-            initialScore = slideshow.Score;
+        }
+
+        public Solution FindSolution(int runMinutes, Solution solution = null)
+        {
+            var stopwatch = new Stopwatch();
+            DateTime startTime = DateTime.Now;
+            Random rnd = new Random();
+            List<int> T = new List<int>(){ 100, 120, 140 };
+            Solution S = solution;
+            if(solution == null)
+            {
+                S = Solution.GenerateRandom();
+            }
+            Solution H = S.Copy();
+            Solution Best = H.Copy();
+
+            while (!TimeDifferenceReached(startTime, runMinutes))
+            {
+                DateTime startTimeInner = DateTime.Now;
+                int time = T[rnd.Next(T.Count)];
+
+                while (!TimeDifferenceReached(startTime, runMinutes) && !TimeDifferenceReachedSeconds(startTimeInner, time))
+                {
+                    var R = S.Copy();
+                    R.Mutate();
+                    var random = rnd.Next(1, 6);
+                    if (S.Slideshow.Score < R.Slideshow.Score || random == 1)
+                    {
+                        S = R;
+                    }
+                }
+
+                Console.WriteLine($"{DateTime.Now}:  {S.Slideshow.Score}");
+                if (S.Slideshow.Score > Best.Slideshow.Score)
+                {
+                    
+                    Best = S;
+                }
+
+                H = NewHomeBase(H, S);
+                S = H.Copy();
+                S.Perturb();
+            }
+
+            return Best;
         }
 
         /// <summary>
         /// Starts solution optimizing by choosing operators randomly
         /// </summary>
-        public void Optimize()
+        public static Solution OptimizeWithoutPerturb(Solution solution, int runSeconds = 10)
         {
-            timeWithoutProgress = Stopwatch.StartNew();
-            executionTime = Stopwatch.StartNew();
-            acceptWorseSolution = Stopwatch.StartNew();
-
-            var score = initialScore;
-            var highestScore = initialScore;
+            var stop = Stopwatch.StartNew();
+            var score = solution.Slideshow.Score;
             do
             {
-                var randomOperator = random.Next(1, 11);
+                var mutationGain = solution.Mutate();
 
-                var gainFromOperator = 0;
-                if (randomOperator <= ConfigurationConsts.SlideSwapUpperFrequency)
-                {
-                    gainFromOperator = Swap.SwapSlides(slideshow, acceptWorseSolution, timeWithoutProgress);
-                }
+                score += mutationGain;
+            }
+            while (stop.ElapsedMilliseconds < runSeconds * 1000);
 
-                else if (randomOperator > ConfigurationConsts.VerticalPhotoSwapFrequencyLowerLimit && randomOperator <= ConfigurationConsts.VerticalPhotoSwapFrequencyUpperLimit)
-                {
-                    gainFromOperator = Swap.SwapVerticalSlidePhotos(slideshow, verticalSlides, acceptWorseSolution, timeWithoutProgress);
-                }
+            return solution;
+        }
 
-                else if (randomOperator > ConfigurationConsts.ShuffleOperatorFrequency)
-                {
-                    gainFromOperator = Shuffle.ShuffleSlides(slideshow, random.Next(4, 8));
-                }
+        public Solution NewHomeBase(Solution H, Solution S)
+        {
+            return S.Slideshow.Score >= H.Slideshow.Score ? S : H;
+        }
 
-                if (gainFromOperator < 0)
+        private bool TimeDifferenceReached(DateTime startTime, int totalRunDuration = 1)
+        {
+            return (int)DateTime.Now.Subtract(startTime).TotalMinutes > totalRunDuration;
+        }
+
+        private bool TimeDifferenceReachedSeconds(DateTime startTime, int totalExecutionSeconds = 60)
+        {
+            return (int)DateTime.Now.Subtract(startTime).TotalSeconds > totalExecutionSeconds;
+        }
+
+
+        public Solution OptimizeV2(Solution solution = null)
+        {
+            Random rnd = new Random();
+            List<int> T = new List<int>() { 180, 360};
+            Solution S = solution;
+            if (solution == null)
+            {
+                S = Solution.GenerateRandom();
+            }
+            var stop = Stopwatch.StartNew();
+            var timeWithoutProgress = Stopwatch.StartNew();
+            var score = S.Slideshow.Score;
+            var time = T[rnd.Next(T.Count)] * 1000;
+            do
+            {
+                var mutationGain = S.Mutate();
+
+                if(mutationGain > 0)
                 {
-                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis += 25;
-                    acceptWorseSolution.Restart();
+                    Console.WriteLine("NS: " + score);
                     timeWithoutProgress.Restart();
                 }
 
-                if(ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis > 5000)
+                score += mutationGain;
+
+                if(timeWithoutProgress.ElapsedMilliseconds > time)
                 {
-                    ConfigurationConsts.AcceptWorseSolutionAfterNoProgressMillis = 1200;
-                }
-
-
-
-                score += gainFromOperator;
-                if (gainFromOperator > 0)
-                {
-                    highestScore = score;
+                    S.Perturb();
+                    score = S.Slideshow.Score;
+                    time = T[rnd.Next(T.Count)] * 1000;
                     timeWithoutProgress.Restart();
-                    Console.WriteLine("NEW SCORE: " + score);
                 }
             }
-            while (executionTime.ElapsedMilliseconds < ConfigurationConsts.RunDuration);
+            while (stop.ElapsedMilliseconds < 999999);
 
-            Common.SaveSolution(slideshow, "final_solution");
+            return S;
         }
     }
 }
